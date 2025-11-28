@@ -1,4 +1,4 @@
-package main.java.com.ecommerce.servlets;
+package com.ecommerce.servlets;
 
 public class PricingServlet {
     
