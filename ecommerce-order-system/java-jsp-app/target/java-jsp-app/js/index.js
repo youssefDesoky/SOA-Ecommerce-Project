@@ -2,6 +2,61 @@ const contextPath = window.APP_CONTEXT || '';
 let cart = JSON.parse(localStorage.getItem('nexusCart')) || [];
 let products = [];
 
+// Normalize Flask inventory shape to UI shape
+function normalizeInventoryItem(item) {
+  return {
+    id: item.product_id,
+    product_id: item.product_id,
+    product_name: item.product_name,
+    name: item.product_name,
+    price: Number(item.unit_price ?? item.price ?? 0),
+    stock_quantity: item.quantity_available ?? item.stock_quantity ?? 0,
+    category: item.category || 'General',
+    image: item.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06b30e?w=500&auto=format&fit=crop',
+    description: item.description || ''
+  };
+}
+
+async function fetchInventory() {
+  const res = await fetch(`${contextPath}/api/inventory`);
+  if (!res.ok) throw new Error(`Inventory fetch failed: ${res.status}`);
+  return res.json();
+}
+
+// Load products: try API, fallback to server-rendered cards
+async function loadProducts() {
+  try {
+    const inventory = await fetchInventory();
+    products = Array.isArray(inventory) ? inventory.map(normalizeInventoryItem) : [];
+  } catch (err) {
+    console.error('Inventory fetch failed, using server-rendered cards', err);
+    products = Array.from(document.querySelectorAll('.product-card')).map(card => {
+      const name = card.querySelector('.product-name')?.textContent?.trim() || 'Product';
+      const priceText = card.querySelector('.product-price')?.textContent?.replace('$', '') || '0';
+      const price = Number(priceText) || 0;
+      const image = card.querySelector('.product-image')?.getAttribute('src') || '';
+      const category = card.querySelector('.product-category')?.textContent?.trim() || '';
+      const form = card.querySelector('form[action$="/api/orders/create"]');
+      const productId = form?.querySelector('input[name="product_id"]')?.value || null;
+      return {
+        id: Number(productId) || productId,
+        product_id: Number(productId) || productId,
+        product_name: name,
+        name,
+        price,
+        image,
+        category,
+        stock_quantity: parseInt(card.querySelector('.product-stock')?.textContent) || 0
+      };
+    });
+  }
+
+  displayProducts(products);
+  updateCart();
+  wireSearch();
+  wireCartSidebar();
+}
+
 // DOM Elements
 const productsContainer = document.getElementById('products-container');
 const cartSidebar = document.getElementById('cart-sidebar');
@@ -14,35 +69,9 @@ const checkoutBtn = document.getElementById('checkout-btn');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  // Parse products from server-rendered cards
-  products = Array.from(document.querySelectorAll('.product-card')).map(card => {
-    const name = card.querySelector('.product-name')?.textContent?.trim() || 'Product';
-    const priceText = card.querySelector('.product-price')?.textContent?.replace('$', '') || '0';
-    const price = Number(priceText) || 0;
-    const image = card.querySelector('.product-image')?.getAttribute('src') || '';
-    const category = card.querySelector('.product-category')?.textContent?.trim() || '';
-    const form = card.querySelector('form[action$="/api/orders/create"]');
-    const productId = form?.querySelector('input[name="product_id"]')?.value || null;
-
-    return {
-      id: Number(productId) || productId,
-      product_id: Number(productId) || productId,
-      product_name: name,
-      name,
-      price,
-      image,
-      category,
-      stock_quantity: parseInt(card.querySelector('.product-stock')?.textContent) || 0
-    };
-  });
-
-  wireAddToCartButtons();
-  updateCart();
-  wireSearch();
-  wireCartSidebar();
+  loadProducts();
 });
 
-// Hook up "Add to Cart" buttons rendered by JSP forms
 function wireAddToCartButtons() {
   document.querySelectorAll('.product-card .add-to-cart').forEach((btn, idx) => {
     btn.addEventListener('click', (e) => {
@@ -163,7 +192,7 @@ function updateQuantity(productId, newQuantity) {
 
 function checkout() {
   if (cart.length === 0) return showNotification('Your cart is empty!', 'error');
-  sessionStorage.setItem('cart', JSON.stringify(cart));
+  // Cart is already in localStorage, just redirect
   window.location.href = `${contextPath}/checkout.jsp`;
 }
 
@@ -176,6 +205,9 @@ function wireCartSidebar() {
       cartSidebar.classList.remove('active');
     }
   });
+  
+  // Add checkout button listener
+  checkoutBtn.addEventListener('click', checkout);
 }
 
 function wireSearch() {

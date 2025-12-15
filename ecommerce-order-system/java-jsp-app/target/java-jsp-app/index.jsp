@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/index.css">
 
     <script>
-      window.APP_CONTEXT = '<%= request.getContextPath() %>';
+        window.APP_CONTEXT = '<%= request.getContextPath() %>';
     </script>
     <script src="<%= request.getContextPath() %>/js/index.js" defer></script>
 </head>

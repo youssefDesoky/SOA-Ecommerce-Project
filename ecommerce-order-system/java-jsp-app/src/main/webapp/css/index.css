@@ -171,6 +171,35 @@ body {
     justify-content: center;
 }
 
+/* User Profile Button */
+.user-profile-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: var(--transition);
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+.user-profile-btn:hover {
+    transform: scale(1.08);
+    border-color: rgba(58, 54, 224, 0.3);
+    box-shadow: 0 4px 15px rgba(58, 54, 224, 0.4);
+}
+
+.user-profile-btn:active {
+    transform: scale(0.95);
+}
+
 /* Hero Section */
 .hero {
     padding: 60px 0 40px;

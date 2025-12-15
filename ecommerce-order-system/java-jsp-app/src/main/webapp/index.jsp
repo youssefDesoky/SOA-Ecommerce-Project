@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/index.css">
 
     <script>
-      window.APP_CONTEXT = '<%= request.getContextPath() %>';
+        window.APP_CONTEXT = '<%= request.getContextPath() %>';
     </script>
     <script src="<%= request.getContextPath() %>/js/index.js" defer></script>
 </head>
@@ -36,6 +36,10 @@
                         <i class="fas fa-shopping-bag"></i>
                         <span class="cart-count" id="cart-count">${sessionScope.cartCount != null ? sessionScope.cartCount : 0}</span>
                     </button>
+
+                    <a href="<%= request.getContextPath() %>/customer-profile.jsp" class="user-profile-btn" id="user-profile-btn" title="My Profile">
+                        <span id="user-initials">GU</span>
+                    </a>
                 </div>
             </nav>
         </div>

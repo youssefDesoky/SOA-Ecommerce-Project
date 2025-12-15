@@ -1,5 +1,4 @@
-// Get cart from sessionStorage
-let cart = JSON.parse(sessionStorage.getItem('nexusCart')) || [];
+let cart = JSON.parse(localStorage.getItem('nexusCart')) || [];
 let currentStep = 1;
 let customerData = {};
 
