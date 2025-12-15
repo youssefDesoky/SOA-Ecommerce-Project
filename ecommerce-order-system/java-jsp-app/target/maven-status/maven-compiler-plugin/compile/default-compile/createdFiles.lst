@@ -1,5 +1,5 @@
-main\java\com\ecommerce\servlets\InventoryServlet.class
-main\java\com\ecommerce\servlets\OrderServlet.class
-main\java\com\ecommerce\servlets\PricingServlet.class
-main\java\com\ecommerce\servlets\CustomerServlet.class
-NotificationServlet.class
+com/ecommerce/servlets/CustomerServlet.class
+com/ecommerce/servlets/PricingServlet.class
+com/ecommerce/servlets/InventoryServlet.class
+com/ecommerce/servlets/OrderServlet.class
+com/ecommerce/servlets/NotificationServlet.class
