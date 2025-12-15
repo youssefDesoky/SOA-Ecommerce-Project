@@ -2,7 +2,7 @@ from flask import Flask
 import mysql.connector
 
 app = Flask(__name__)
-db = mysql.connector.connect(host='localhost', user='root', password='root', database='ecommerce_system')
+db = mysql.connector.connect(host='localhost', user='root', password='', database='ecommerce_system')
 
 @app.route('/inventory', methods=['GET'])
 def get_inventory():

@@ -1,4 +1,4 @@
-package main.java.com.ecommerce.servlets;
+package com.ecommerce.servlets;
 
 import java.io.IOException;
 import java.net.URI;
