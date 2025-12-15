@@ -24,6 +24,10 @@
                     <div class="logo-icon">N</div>
                     <span class="logo-text">Nexus</span>
                 </a>
+
+                <a href="<%= request.getContextPath() %>/customer-profile.jsp" class="user-profile-btn" id="user-profile-btn" title="My Profile">
+                    <span id="user-initials">GU</span>
+                </a>
             </nav>
         </div>
     </header>

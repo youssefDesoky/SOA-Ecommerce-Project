@@ -1203,7 +1203,6 @@
                                     <th>Date</th>
                                     <th>Items</th>
                                     <th>Total</th>
-                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>

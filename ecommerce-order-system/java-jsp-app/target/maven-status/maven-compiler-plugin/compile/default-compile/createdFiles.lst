@@ -1,5 +1,5 @@
-com\ecommerce\servlets\NotificationServlet.class
-com\ecommerce\servlets\OrderServlet.class
-com\ecommerce\servlets\CustomerServlet.class
-com\ecommerce\servlets\InventoryServlet.class
-com\ecommerce\servlets\PricingServlet.class
+com/ecommerce/servlets/CustomerServlet.class
+com/ecommerce/servlets/PricingServlet.class
+com/ecommerce/servlets/InventoryServlet.class
+com/ecommerce/servlets/OrderServlet.class
+com/ecommerce/servlets/NotificationServlet.class
