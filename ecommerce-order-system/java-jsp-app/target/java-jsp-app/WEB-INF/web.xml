@@ -4,4 +4,14 @@
 
 <web-app>
   <display-name>Archetype Created Web Application</display-name>
+
+  <servlet>
+    <servlet-name>InventoryServlet</servlet-name>
+    <servlet-class>com.ecommerce.servlets.InventoryServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>InventoryServlet</servlet-name>
+    <url-pattern>/api/inventory</url-pattern>
+    <url-pattern>/api/inventory/*</url-pattern>
+  </servlet-mapping>
 </web-app>
