@@ -47,29 +47,37 @@ def create_order():
         if stock_available < quantity:
             return jsonify({'error': f'insufficient stock for product {product_id}'}), 400
     
+    # Calculate pricing using pricing service
+    shipping_address = data.get('shipping_address', '')
+    region = shipping_address.split(' - ')[-1].strip() if shipping_address else ''
+    pricing_data = {'products': [{'product_id': p['product_id'], 'quantity': p['quantity'], 'unit_price': str(p['unit_price'])} for p in products], 'region': region}
+    pricing_response = requests.post('http://localhost:5003/api/pricing/calculate', json=pricing_data)
+    if pricing_response.status_code != 200:
+        return jsonify({'error': 'pricing calculation failed'}), 500
+    
+    pricing_result = pricing_response.json()
+    total_amount = pricing_result['total']
+    
+    # Calculate total discount and discount percentage
+    total_discount = sum(Decimal(item['total_before_discount']) - Decimal(item['discounted_total']) for item in pricing_result['items'])
+    
     # Insert order
     shipping_address = data.get('shipping_address', '')
     payment_method = data.get('payment_method', '')
-    cur.execute('INSERT INTO orders (customer_id, total_amount, shipping_address, payment_method) VALUES (%s, %s, %s, %s)', 
-                (customer_id, Decimal(0), shipping_address, payment_method))
+    cur.execute('INSERT INTO orders (customer_id, total_amount, shipping_address, payment_method, total_discount) VALUES (%s, %s, %s, %s, %s)', 
+                (customer_id, total_amount, shipping_address, payment_method, total_discount))
     order_id = cur.lastrowid
     
-    total_amount = Decimal(0)
-    
     # Insert order items
-    for product in products:
+    for product, item_pricing in zip(products, pricing_result['items']):
         product_id = product['product_id']
         quantity = product['quantity']
         
         unit_price = product['unit_price']
-        item_total_price = unit_price * quantity
-        total_amount += item_total_price
+        item_total_price = item_pricing['discounted_total']
         
         cur.execute('INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price) VALUES (%s, %s, %s, %s, %s)', 
                     (order_id, product_id, quantity, unit_price, item_total_price))
-    
-    # Update total_amount in orders
-    cur.execute('UPDATE orders SET total_amount = %s WHERE order_id = %s', (total_amount, order_id))
     
     db.commit()
     
@@ -80,7 +88,7 @@ def create_order():
             # Log error, but order is created
             pass
     
-    return jsonify({'order_id': order_id, 'total_amount': total_amount}), 201
+    return jsonify({'order_id': order_id, 'total_amount': total_amount, 'total_discount': total_discount}), 201
 
 
 #GET /api/orders/{order_id}
@@ -96,6 +104,10 @@ def get_order(order_id):
     cur.execute("SELECT * FROM order_items WHERE order_id = %s", (order_id,))
     items = cur.fetchall()
     order['items'] = items
+    
+    # Calculate total discount and discount percentage
+    total_discount = sum((Decimal(item['unit_price']) * item['quantity']) - Decimal(item['total_price']) for item in items)
+    order['total_discount'] = total_discount
     
     return jsonify(order)
 
