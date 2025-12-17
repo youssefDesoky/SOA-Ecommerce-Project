@@ -91,4 +91,4 @@ def get_order(order_id):
     return jsonify(order)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5001, host='0.0.0.0')

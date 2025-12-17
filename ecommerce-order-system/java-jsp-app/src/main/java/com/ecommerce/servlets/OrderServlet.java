@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @WebServlet("/submitOrder")
 public class OrderServlet extends HttpServlet {
-    private static final String ORDER_SERVICE_URL = "http://localhost:5001/api/orders";
+    private static final String ORDER_SERVICE_URL = "http://172.17.0.1:5001/api/orders";
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -21,7 +21,7 @@ public class OrderServlet extends HttpServlet {
 
         String pathInfo = request.getPathInfo();
 
-        if (pathInfo == null && pathInfo.equals("/create")) {
+        if ("/create".equals(pathInfo)) {
             // Get form parameters
             String customerId = request.getParameter("customer_id");
             String productId = request.getParameter("product_id");
@@ -45,7 +45,7 @@ public class OrderServlet extends HttpServlet {
 
                 // Forward to confirmation page
                 request.setAttribute("orderResponse", flaskResponse.body());
-                request.getRequestDispatcher("/confirmation.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/confirmation.jsp").forward(request, response);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Request interrupted");
@@ -55,33 +55,6 @@ public class OrderServlet extends HttpServlet {
         }
     }
 
-    // @Override
-    // protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    //         throws ServletException, IOException {
-        
-    //     // Get form parameters
-    //     String customerId = request.getParameter("customer_id");
-    //     String productId = request.getParameter("product_id");
-    //     String quantity = request.getParameter("quantity");
-
-    //     // Mock successful order response
-    //     String mockOrderId = String.valueOf(System.currentTimeMillis());
-    //     String mockResponse = String.format(
-    //         "{\"status\":\"success\",\"order_id\":\"%s\",\"message\":\"Order placed successfully\"}",
-    //         mockOrderId
-    //     );
-
-    //     // Set attributes for confirmation page
-    //     request.setAttribute("orderResponse", mockResponse);
-    //     request.setAttribute("statusCode", 201);
-    //     request.setAttribute("customerId", customerId);
-    //     request.setAttribute("productId", productId);
-    //     request.setAttribute("quantity", quantity);
-
-    //     // Forward to confirmation page
-    //     request.getRequestDispatcher("confirmation.jsp").forward(request, response);
-    // }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
@@ -90,6 +63,12 @@ public class OrderServlet extends HttpServlet {
 
         if (pathInfo != null && pathInfo.length() > 1) {
             String orderId = pathInfo.substring(1);
+            if (orderId.isBlank()) {
+                response.sendError(400, "Invalid order ID");
+                return;
+            }
+
+
             String url = ORDER_SERVICE_URL + "/" + orderId;
             
             HttpClient client = HttpClient.newHttpClient();

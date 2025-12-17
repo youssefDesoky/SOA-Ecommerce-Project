@@ -1,61 +1,5 @@
 const contextPath = window.APP_CONTEXT || '';
 let cart = JSON.parse(localStorage.getItem('nexusCart')) || [];
-let products = [];
-
-// Normalize Flask inventory shape to UI shape
-function normalizeInventoryItem(item) {
-  return {
-    id: item.product_id,
-    product_id: item.product_id,
-    product_name: item.product_name,
-    name: item.product_name,
-    price: Number(item.unit_price ?? item.price ?? 0),
-    stock_quantity: item.quantity_available ?? item.stock_quantity ?? 0,
-    category: item.category || 'General',
-    image: item.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06b30e?w=500&auto=format&fit=crop',
-    description: item.description || ''
-  };
-}
-
-async function fetchInventory() {
-  const res = await fetch(`${contextPath}/api/inventory`);
-  if (!res.ok) throw new Error(`Inventory fetch failed: ${res.status}`);
-  return res.json();
-}
-
-// Load products: try API, fallback to server-rendered cards
-async function loadProducts() {
-  try {
-    const inventory = await fetchInventory();
-    products = Array.isArray(inventory) ? inventory.map(normalizeInventoryItem) : [];
-  } catch (err) {
-    console.error('Inventory fetch failed, using server-rendered cards', err);
-    products = Array.from(document.querySelectorAll('.product-card')).map(card => {
-      const name = card.querySelector('.product-name')?.textContent?.trim() || 'Product';
-      const priceText = card.querySelector('.product-price')?.textContent?.replace('$', '') || '0';
-      const price = Number(priceText) || 0;
-      const image = card.querySelector('.product-image')?.getAttribute('src') || '';
-      const category = card.querySelector('.product-category')?.textContent?.trim() || '';
-      const form = card.querySelector('form[action$="/api/orders/create"]');
-      const productId = form?.querySelector('input[name="product_id"]')?.value || null;
-      return {
-        id: Number(productId) || productId,
-        product_id: Number(productId) || productId,
-        product_name: name,
-        name,
-        price,
-        image,
-        category,
-        stock_quantity: parseInt(card.querySelector('.product-stock')?.textContent) || 0
-      };
-    });
-  }
-
-  displayProducts(products);
-  updateCart();
-  wireSearch();
-  wireCartSidebar();
-}
 
 // DOM Elements
 const productsContainer = document.getElementById('products-container');
@@ -67,73 +11,36 @@ const cartCount = document.getElementById('cart-count');
 const cartTotal = document.getElementById('cart-total');
 const checkoutBtn = document.getElementById('checkout-btn');
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  loadProducts();
-});
-
+// Wire add to cart buttons
 function wireAddToCartButtons() {
-  document.querySelectorAll('.product-card .add-to-cart').forEach((btn, idx) => {
+  document.querySelectorAll('.product-card .add-to-cart').forEach((btn) => {
     btn.addEventListener('click', (e) => {
-      e.preventDefault(); // prevent form POST; we use client cart
-      const p = products[idx];
-      if (!p) return;
-      addToCart(p.id ?? p.product_id, p.name ?? p.product_name, p.price, p.image);
-    });
-  });
-}
-
-// Display products (client-side filter re-renders simple cards)
-function displayProducts(productsToShow) {
-  productsContainer.innerHTML = productsToShow.map(product => {
-    const name = product.product_name || product.name || 'Product';
-    const price = Number(product.price || 0);
-    const image = product.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06b30e?w=500&auto=format&fit=crop';
-    const stock = product.stock_quantity ?? product.stock ?? 0;
-    const category = product.category || 'Electronics';
-    const id = product.product_id || product.id;
-    const badge = stock === 0 ? `<div class="product-badge">Out of Stock</div>` : (stock < 5 ? `<div class="product-badge">Only ${stock} left!</div>` : '');
-
-    return `
-      <div class="product-card">
-        ${badge}
-        <img src="${image}" alt="${name}" class="product-image">
-        <div class="product-info">
-          <div class="product-category">${category}</div>
-          <h3 class="product-name">${name}</h3>
-          <div class="product-footer">
-            <div>
-              <div class="product-price">$${price.toFixed(2)}</div>
-              <div class="product-stock"><i class="fas fa-check-circle"></i> ${stock} in stock</div>
-            </div>
-          </div>
-          <button class="add-to-cart" data-id="${id}" data-name="${name.replace(/'/g, "\\'")}" data-price="${price}" data-image="${image}">
-            <i class="fas fa-shopping-cart"></i> Add to Cart
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Bind buttons for newly rendered cards
-  document.querySelectorAll('.add-to-cart').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const id = Number(btn.dataset.id) || btn.dataset.id;
-      const name = btn.dataset.name;
-      const price = Number(btn.dataset.price);
-      const image = btn.dataset.image;
+      e.preventDefault();
+      const id = btn.getAttribute('data-id');
+      const name = btn.getAttribute('data-name');
+      const price = parseFloat(btn.getAttribute('data-price'));
+      const image = btn.getAttribute('data-image');
       addToCart(id, name, price, image);
     });
   });
 }
 
-// Cart functions (unchanged)
+// Initialize add to cart buttons when DOM loads
+document.addEventListener('DOMContentLoaded', wireAddToCartButtons);
+
+// Cart functions
 function addToCart(productId, productName, price, image) {
   const existingItem = cart.find(item => item.id === productId);
   if (existingItem) {
     existingItem.quantity += 1;
   } else {
-    cart.push({ id: productId, name: productName, price, image, quantity: 1 });
+    cart.push({ 
+      id: productId, 
+      name: productName, 
+      price: price, 
+      image: image, 
+      quantity: 1 
+    });
   }
   updateCart();
   showNotification(`${productName} added to cart!`);
@@ -167,10 +74,10 @@ function updateCart() {
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-price">$${(item.price * item.quantity).toFixed(2)}</div>
           <div class="cart-item-quantity">
-            <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
+            <button class="quantity-btn" onclick="updateQuantity('${item.id}', ${item.quantity - 1})">-</button>
             <span class="quantity">${item.quantity}</span>
-            <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
-            <button class="remove-item" onclick="removeFromCart(${item.id})"><i class="fas fa-trash"></i></button>
+            <button class="quantity-btn" onclick="updateQuantity('${item.id}', ${item.quantity + 1})">+</button>
+            <button class="remove-item" onclick="removeFromCart('${item.id}')"><i class="fas fa-trash"></i></button>
           </div>
         </div>
       </div>
@@ -190,10 +97,27 @@ function updateQuantity(productId, newQuantity) {
   }
 }
 
-function checkout() {
-  if (cart.length === 0) return showNotification('Your cart is empty!', 'error');
-  // Cart is already in localStorage, just redirect
-  window.location.href = `${contextPath}/checkout.jsp`;
+async function checkout() {
+  try {
+    const res = await fetch(`${contextPath}/api/orders/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customer_id: 1, // You should get this from session
+        items: cart
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      window.location.href = `${contextPath}/confirmation?orderId=${data.id}`;
+    } else {
+      showNotification('Checkout failed. Please try again.', 'error');
+    }
+  } catch (error) {
+    showNotification('Checkout error. Please try again.', 'error');
+    console.error('Checkout error:', error);
+  }
 }
 
 // UI wiring
@@ -206,26 +130,10 @@ function wireCartSidebar() {
     }
   });
   
-  // Add checkout button listener
   checkoutBtn.addEventListener('click', checkout);
 }
 
-function wireSearch() {
-  const searchInput = document.querySelector('.search-input');
-  if (!searchInput) return;
-  searchInput.addEventListener('input', (e) => {
-    const term = e.target.value.toLowerCase();
-    if (term.length === 0) return displayProducts(products);
-    const filtered = products.filter(p =>
-      (p.product_name || p.name).toLowerCase().includes(term) ||
-      (p.description || '').toLowerCase().includes(term) ||
-      (p.category || '').toLowerCase().includes(term)
-    );
-    displayProducts(filtered);
-  });
-}
-
-// Notifications (unchanged)
+// Notifications
 function showNotification(message, type = 'success') {
   const notification = document.createElement('div');
   notification.style.cssText = `
@@ -243,9 +151,15 @@ function showNotification(message, type = 'success') {
   }, 3000);
 }
 
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-  @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-`;
-document.head.appendChild(style);
+// Initialize cart on page load
+document.addEventListener('DOMContentLoaded', () => {
+  updateCart();
+  wireCartSidebar();
+  
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+  `;
+  document.head.appendChild(style);
+});

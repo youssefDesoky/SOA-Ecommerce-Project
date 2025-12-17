@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class PricingServlet extends HttpServlet {
 
-    private static final String PRICING_SERVICE_URL = "http://localhost:5003/api/pricing";
+    private static final String PRICING_SERVICE_URL = "http://172.17.0.1:5003/api/pricing";
 
     // POST /api/pricing/calculate
     @Override

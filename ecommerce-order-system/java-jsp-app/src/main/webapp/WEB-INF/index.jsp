@@ -1,5 +1,5 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,15 +9,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/index.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/index.css">
 
     <script>
-        window.APP_CONTEXT = '<%= request.getContextPath() %>';
+    window.APP_CONTEXT = '${pageContext.request.contextPath}';
     </script>
-    <script src="<%= request.getContextPath() %>/js/index.js" defer></script>
+    <script src="${pageContext.request.contextPath}/js/index.js" defer></script>
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header without search bar -->
     <header class="header">
         <div class="container">
             <nav class="nav">
@@ -26,18 +26,13 @@
                     <span class="logo-text">Nexus</span>
                 </a>
                 
-                <div class="header-actions">
-                    <div class="search-bar">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" class="search-input" placeholder="Search products...">
-                    </div>
-                    
+                <div class="header-actions">                    
                     <button class="cart-btn" id="cart-toggle">
                         <i class="fas fa-shopping-bag"></i>
                         <span class="cart-count" id="cart-count">${sessionScope.cartCount != null ? sessionScope.cartCount : 0}</span>
                     </button>
 
-                    <a href="<%= request.getContextPath() %>/customer-profile.jsp" class="user-profile-btn" id="user-profile-btn" title="My Profile">
+                    <a href="${pageContext.request.contextPath}/customers" class="user-profile-btn" id="user-profile-btn" title="My Profile">
                         <span id="user-initials">GU</span>
                     </a>
                 </div>
@@ -63,32 +58,35 @@
                       <c:if test="${p.stock_quantity == 0}">
                         <div class="product-badge">Out of Stock</div>
                       </c:if>
-                      <img src="${empty p.image ? 'https://images.unsplash.com/photo-1505740420928-5e560c06b30e?w=500&auto=format&fit=crop' : p.image}" alt="${p.product_name}" class="product-image">
+                      <img src="${p.image}" alt="${p.product_name}" class="product-image">
                       <div class="product-info">
                         <div class="product-category">${p.category}</div>
                         <h3 class="product-name">${p.product_name}</h3>
-                        <p class="product-description">${p.description}</p>
                         <div class="product-footer">
                           <div>
-                            <div class="product-price">$<c:out value="${p.price}" /></div>
+                            <div class="product-price">$${String.format("%.2f", p.price)}</div>
                             <div class="product-stock">
                               <i class="fas fa-check-circle"></i>
-                              <c:out value="${p.stock_quantity}" /> in stock
+                              ${p.stock_quantity} in stock
                             </div>
                           </div>
                         </div>
-                        <form action="${pageContext.request.contextPath}/api/orders/create" method="post">
-                          <input type="hidden" name="customer_id" value="${sessionScope.customerId}">
-                          <input type="hidden" name="product_id" value="${p.product_id}">
-                          <input type="hidden" name="quantity" value="1">
-                          <button type="submit" class="add-to-cart"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
-                        </form>
+                        <button class="add-to-cart"
+                            data-id="${p.product_id}"
+                            data-name="${p.product_name}"
+                            data-price="${p.price}"
+                            data-image="${p.image}">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
                       </div>
                     </div>
                   </c:forEach>
                 </c:when>
                 <c:otherwise>
-                  <p style="color:#999;">No products available.</p>
+                  <div class="no-products">
+                    <i class="fas fa-box-open"></i>
+                    <p>No products available at the moment.</p>
+                  </div>
                 </c:otherwise>
               </c:choose>
             </div>

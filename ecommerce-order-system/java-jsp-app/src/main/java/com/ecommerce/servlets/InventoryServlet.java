@@ -6,85 +6,107 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.ecommerce.model.Product;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class InventoryServlet extends HttpServlet {
-    // Use Docker bridge IP to reach Flask on the host from inside Docker container
     private static final String INVENTORY_SERVICE_URL = "http://172.17.0.1:5002/api/inventory";
     private static final HttpClient client = HttpClient.newHttpClient();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    // GET /api/inventory OR /api/inventory/check/{product_id}
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String pathInfo = request.getPathInfo(); // /check/123 or null
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
         try {
-            // If path is /check/{product_id}
-            if (pathInfo != null && pathInfo.startsWith("/check/")) {
-                String productId = pathInfo.substring(7); // "/check/".length()
-                String url = INVENTORY_SERVICE_URL + "/check/" + productId;
-                String quantity = request.getParameter("quantity");
+            HttpRequest flaskRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(INVENTORY_SERVICE_URL))
+                    .timeout(Duration.ofSeconds(10))
+                    .GET()
+                    .build();
 
-                if (quantity != null) {
-                    url += "?quantity=" + quantity;
+            HttpResponse<String> flaskResponse = client
+                    .send(flaskRequest, HttpResponse.BodyHandlers.ofString());
+
+            // Parse JSON and convert to List of Product objects
+            String jsonString = flaskResponse.body();
+            List<Product> products = new ArrayList<>();
+
+            JsonNode jsonArray = objectMapper.readTree(jsonString);
+
+            for (JsonNode jsonNode : jsonArray) {
+                Product product = new Product();
+
+                // Map JSON fields to Product object
+                if (jsonNode.has("product_id")) {
+                    product.setProduct_id(jsonNode.get("product_id").asInt());
                 }
 
-                HttpRequest flaskRequest = HttpRequest.newBuilder()
-                        .uri(URI.create(url))
-                        .timeout(Duration.ofSeconds(10))
-                        .GET()
-                        .build();
+                if (jsonNode.has("product_name")) {
+                    product.setProduct_name(jsonNode.get("product_name").asText());
+                }
 
-                HttpResponse<String> flaskResponse = client.send(flaskRequest, HttpResponse.BodyHandlers.ofString());
-                response.setStatus(flaskResponse.statusCode());
-                response.getWriter().write(flaskResponse.body());
+                // Handle both "unit_price" and "price" fields
+                if (jsonNode.has("unit_price")) {
+                    product.setPrice(jsonNode.get("unit_price").asDouble());
+                } else if (jsonNode.has("price")) {
+                    product.setPrice(jsonNode.get("price").asDouble());
+                }
 
-            } else {
-                // Return all inventory from Flask service
-                HttpRequest flaskRequest = HttpRequest.newBuilder()
-                        .uri(URI.create(INVENTORY_SERVICE_URL))
-                        .timeout(Duration.ofSeconds(10))
-                        .GET()
-                        .build();
+                // Handle both "quantity_available" and "stock_quantity" fields
+                if (jsonNode.has("quantity_available")) {
+                    product.setStock_quantity(jsonNode.get("quantity_available").asInt());
+                } else if (jsonNode.has("stock_quantity")) {
+                    product.setStock_quantity(jsonNode.get("stock_quantity").asInt());
+                }
 
-                HttpResponse<String> flaskResponse = client.send(flaskRequest, HttpResponse.BodyHandlers.ofString());
-                response.setStatus(flaskResponse.statusCode());
-                response.getWriter().write(flaskResponse.body());
+                // Set default values for other fields
+                product.setCategory(jsonNode.has("category") ? jsonNode.get("category").asText() : "Electronics");
+
+                product.setImage(jsonNode.has("image") ? jsonNode.get("image").asText()
+                        : "https://images.unsplash.com/photo-1505740420928-5e560c06b30e?w=500&auto=format&fit=crop");
+
+                product.setDescription(jsonNode.has("description") ? jsonNode.get("description").asText()
+                        : "Premium electronic product");
+
+                products.add(product);
             }
+
+            // Set products as request attribute
+            request.setAttribute("products", products);
+
+            // Forward to JSP
+            request.getRequestDispatcher("/WEB-INF/index.jsp").forward(request, response);
+
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"error\":\"Request interrupted\"}");
-        } catch (java.net.ConnectException e) {
-            response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-            response.getWriter().write("{\"error\":\"Inventory service unavailable\"}");
+            throw new ServletException("Request interrupted", e);
         } catch (Exception e) {
-            e.printStackTrace();
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"error\":\"" + e.getMessage().replace("\"", "'") + "\"}");
+            throw new ServletException("Failed to load inventory", e);
         }
     }
 
-    // PUT /api/inventory/update
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String pathInfo = request.getPathInfo(); // /update
+        String pathInfo = request.getPathInfo();
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
         if ("/update".equals(pathInfo)) {
             try {
                 String productId = request.getParameter("product_id");
-                String quantityDelta = request.getParameter("quantity_delta"); // align with Flask
+                String quantityDelta = request.getParameter("quantity_delta");
 
                 String jsonPayload = String.format(
                         "{\"product_id\":%s,\"quantity_delta\":%s}",

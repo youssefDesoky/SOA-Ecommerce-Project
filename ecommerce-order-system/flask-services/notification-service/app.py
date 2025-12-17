@@ -11,4 +11,4 @@ def get_notifications():
     return {'notifications': cursor.fetchall()}
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5005)
+    app.run(debug=True, port=5005, host='0.0.0.0')

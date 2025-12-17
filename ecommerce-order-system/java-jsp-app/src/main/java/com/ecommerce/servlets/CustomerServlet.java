@@ -11,17 +11,23 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class CustomerServlet extends HttpServlet {
-    private static final String CUSTOMER_SERVICE_URL = "http://localhost:5004/api/customers";
-    private static final String ORDER_SERVICE_URL = "http://localhost:5001/api/orders";
+    private static final String CUSTOMER_SERVICE_URL = "http://172.17.0.1:5004/api/customers";
+    private static final String ORDER_SERVICE_URL = "http://172.17.0.1:5001/api/orders";
 
-    // GET /api/customers/{customer_id} OR /api/customers/{customer_id}/orders
+    // GET /customers or /customers/{customer_id} OR /customers/{customer_id}/orders
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String pathInfo = request.getPathInfo(); // /{customer_id}/orders or /{customer_id}
+        String pathInfo = request.getPathInfo(); // /{customer_id}/orders or /{customer_id} or null
 
-        if (pathInfo != null && pathInfo.length() > 1) {
+        // If no path info, forward to customer profile page
+        if (pathInfo == null || pathInfo.equals("/") || pathInfo.equals("/profile")) {
+            request.getRequestDispatcher("/WEB-INF/customer-profile.jsp").forward(request, response);
+            return;
+        }
+
+        if (pathInfo.length() > 1) {
             String[] parts = pathInfo.substring(1).split("/"); // ["123", "orders"] or ["123"]
             String customerId = parts[0];
 

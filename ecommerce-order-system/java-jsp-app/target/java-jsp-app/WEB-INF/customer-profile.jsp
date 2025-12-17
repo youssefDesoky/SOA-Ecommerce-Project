@@ -1424,7 +1424,7 @@
             currentAvatar.textContent = user.avatar;
             
             // Update name and email
-            document.getElementById('userName').textContent = `${user.firstName} ${user.lastName}`;
+            document.getElementById('userName').textContent = `\${user.firstName} \${user.lastName}`;
             document.getElementById('userEmail').textContent = user.email;
             
             // Update profile form
@@ -1435,7 +1435,7 @@
             document.getElementById('profileDob').value = user.dob;
             
             // Set gender
-            const genderRadio = document.querySelector(`input[name="gender"][value="${user.gender}"]`);
+            const genderRadio = document.querySelector(`input[name="gender"][value="\${user.gender}"]`);
             if (genderRadio) genderRadio.checked = true;
         }
 
@@ -1446,12 +1446,12 @@
             activityList.innerHTML = sampleData.activity.map(activity => `
                 <li class="activity-item">
                     <div class="activity-icon">
-                        <i class="fas fa-${getActivityIcon(activity.title)}"></i>
+                        <i class="fas fa-\${getActivityIcon(activity.title)}"></i>
                     </div>
                     <div class="activity-content">
-                        <div class="activity-title">${activity.title}</div>
-                        <div class="activity-description">${activity.description}</div>
-                        <div class="activity-time">${formatTime(activity.time)}</div>
+                        <div class="activity-title">\${activity.title}</div>
+                        <div class="activity-description">\${activity.description}</div>
+                        <div class="activity-time">\${formatTime(activity.time)}</div>
                     </div>
                 </li>
             `).join('');
@@ -1461,19 +1461,19 @@
             recentOrders.innerHTML = sampleData.orders.map(order => `
                 <tr>
                     <td style="padding: 10px;">
-                        <a href="order-details.jsp?orderId=${order.id}" style="color: var(--primary); text-decoration: none; font-weight: 600;">
-                            ${order.id}
+                        <a href="order-details.jsp?orderId=\${order.id}" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+                            \${order.id}
                         </a>
                     </td>
-                    <td style="padding: 10px;">${formatDate(order.date)}</td>
-                    <td style="padding: 10px;">$${order.total.toFixed(2)}</td>
+                    <td style="padding: 10px;">\${formatDate(order.date)}</td>
+                    <td style="padding: 10px;">$\${order.total.toFixed(2)}</td>
                     <td style="padding: 10px;">
-                        <span class="order-status ${order.status}">
-                            ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        <span class="order-status \${order.status}">
+                            \${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                         </span>
                     </td>
                     <td style="padding: 10px;">
-                        <a href="order-details.jsp?orderId=${order.id}" class="btn btn-secondary btn-sm">
+                        <a href="order-details.jsp?orderId=\${order.id}" class="btn btn-secondary btn-sm">
                             <i class="fas fa-eye"></i>
                         </a>
                     </td>
@@ -1544,9 +1544,9 @@
         
         // Switch between sections (for compatibility with existing code)
         function switchSection(section) {
-            const targetSection = document.getElementById(`${section}-section`);
+            const targetSection = document.getElementById(`\${section}-section`);
             if (targetSection) {
-                toggleAccordion(`${section}-section`);
+                toggleAccordion(`\${section}-section`);
             }
         }
 
@@ -1564,20 +1564,20 @@
             emptyOrders.style.display = 'none';
             ordersTable.innerHTML = sampleData.orders.map(order => `
                 <tr>
-                    <td class="order-id">${order.id}</td>
-                    <td>${formatDate(order.date)}</td>
-                    <td>${order.items} item${order.items > 1 ? 's' : ''}</td>
-                    <td>$${order.total.toFixed(2)}</td>
+                    <td class="order-id">\${order.id}</td>
+                    <td>\${formatDate(order.date)}</td>
+                    <td>\${order.items} item\${order.items > 1 ? 's' : ''}</td>
+                    <td>$\${order.total.toFixed(2)}</td>
                     <td>
                         <div class="order-actions">
-                            <a href="order-details.jsp?orderId=${order.id}" class="btn btn-secondary btn-sm">
+                            <a href="order-details.jsp?orderId=\${order.id}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <button class="btn btn-secondary btn-sm" onclick="reorderItems('${order.id}')">
+                            <button class="btn btn-secondary btn-sm" onclick="reorderItems('\${order.id}')">
                                 <i class="fas fa-redo"></i>
                             </button>
-                            ${order.status === 'processing' ? `
-                                <button class="btn btn-danger btn-sm" onclick="cancelOrder('${order.id}')">
+                            \${order.status === 'processing' ? `
+                                <button class="btn btn-danger btn-sm" onclick="cancelOrder('\${order.id}')">
                                     <i class="fas fa-times"></i>
                                 </button>
                             ` : ''}
@@ -1592,16 +1592,16 @@
             const notificationsList = document.getElementById('notificationsList');
             
             notificationsList.innerHTML = sampleData.notifications.map(notification => `
-                <div class="setting-option" style="align-items: flex-start; ${notification.read ? 'opacity: 0.7;' : 'background: rgba(58, 54, 224, 0.05);'}">
+                <div class="setting-option" style="align-items: flex-start; \${notification.read ? 'opacity: 0.7;' : 'background: rgba(58, 54, 224, 0.05);'}">
                     <div class="setting-info">
-                        <h4>${notification.title}</h4>
-                        <p>${notification.message}</p>
+                        <h4>\${notification.title}</h4>
+                        <p>\${notification.message}</p>
                         <div style="color: var(--gray); font-size: 0.85rem; margin-top: 5px;">
-                            ${formatTime(notification.time)}
+                            \${formatTime(notification.time)}
                         </div>
                     </div>
-                    ${!notification.read ? `
-                        <button class="btn btn-secondary btn-sm" onclick="markAsRead(${notification.id})">
+                    \${!notification.read ? `
+                        <button class="btn btn-secondary btn-sm" onclick="markAsRead(\${notification.id})">
                             Mark as Read
                         </button>
                     ` : ''}
@@ -1616,13 +1616,13 @@
             sessionsList.innerHTML = sampleData.sessions.map(session => `
                 <div class="setting-option">
                     <div class="setting-info">
-                        <h4>${session.device}</h4>
-                        <p>${session.location} • ${formatTime(session.time)}</p>
+                        <h4>\${session.device}</h4>
+                        <p>\${session.location} • \${formatTime(session.time)}</p>
                     </div>
-                    ${session.current ? `
+                    \${session.current ? `
                         <span style="color: var(--success); font-weight: 600;">Current</span>
                     ` : `
-                        <button class="btn btn-danger btn-sm" onclick="logoutSession(${session.id})">
+                        <button class="btn btn-danger btn-sm" onclick="logoutSession(\${session.id})">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
                     `}
@@ -1640,8 +1640,8 @@
             const requiredFields = ['first_name', 'last_name', 'email', 'phone'];
             
             requiredFields.forEach(field => {
-                const input = form.querySelector(`[name="${field}"]`);
-                const error = document.getElementById(`${field}Error`);
+                const input = form.querySelector(`[name="\${field}"]`);
+                const error = document.getElementById(`\${field}Error`);
                 
                 if (!input.value.trim()) {
                     showError(field, 'This field is required');
@@ -1686,7 +1686,7 @@
             avatar.textContent = userData.firstName.charAt(0) + userData.lastName.charAt(0);
             currentAvatar.textContent = userData.firstName.charAt(0) + userData.lastName.charAt(0);
             
-            document.getElementById('userName').textContent = `${userData.firstName} ${userData.lastName}`;
+            document.getElementById('userName').textContent = `\${userData.firstName} \${userData.lastName}`;
             document.getElementById('userEmail').textContent = userData.email;
             
             alert('Profile updated successfully!');
@@ -1725,9 +1725,9 @@
                 const hours = Math.floor(diff / (60 * 60 * 1000));
                 if (hours === 0) {
                     const minutes = Math.floor(diff / (60 * 1000));
-                    return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+                    return `\${minutes} minute\${minutes === 1 ? '' : 's'} ago`;
                 }
-                return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+                return `\${hours} hour\${hours === 1 ? '' : 's'} ago`;
             }
             
             // Otherwise show date
@@ -1745,19 +1745,19 @@
         }
 
         function showError(field, message) {
-            const errorEl = document.getElementById(`${field}Error`);
+            const errorEl = document.getElementById(`\${field}Error`);
             if (errorEl) {
                 errorEl.textContent = message;
                 errorEl.classList.add('show');
-                document.getElementById(`profile${field.charAt(0).toUpperCase() + field.slice(1)}`).classList.add('error');
+                document.getElementById(`profile\${field.charAt(0).toUpperCase() + field.slice(1)}`).classList.add('error');
             }
         }
 
         function clearError(field) {
-            const errorEl = document.getElementById(`${field}Error`);
+            const errorEl = document.getElementById(`\${field}Error`);
             if (errorEl) {
                 errorEl.classList.remove('show');
-                document.getElementById(`profile${field.charAt(0).toUpperCase() + field.slice(1)}`).classList.remove('error');
+                document.getElementById(`profile\${field.charAt(0).toUpperCase() + field.slice(1)}`).classList.remove('error');
             }
         }
 
