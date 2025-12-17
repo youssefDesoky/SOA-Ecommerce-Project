@@ -1,87 +1,82 @@
-// Sample order data (in a real app, this would come from your backend)
-const sampleOrder = {
-    orderId: '<%= request.getParameter("orderId") != null ? request.getParameter("orderId") : "ORD-" + new java.util.Date().getTime().toString().slice(-8) %>',
-    customerName: "Mohamed Salah",
-    customerEmail: "mohamed.salah@example.com",
-    customerPhone: "+201234567890",
-    shippingAddress: "123 Main Street, Nasr City, Cairo, Egypt",
-    paymentMethod: "Cash on Delivery",
-    items: [
-        {
-            id: 1,
-            name: "Quantum X1 Laptop",
-            price: 1299.99,
-            quantity: 1,
-            image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&auto=format&fit=crop"
-        },
-        {
-            id: 2,
-            name: "Nova 5 Wireless Earbuds",
-            price: 199.99,
-            quantity: 2,
-            image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=500&auto=format&fit=crop"
-        }
-    ],
-    subtotal: 1699.97,
-    shipping: 9.99,
-    tax: 237.99,
-    total: 1947.95
-};
-
-// Get order data from sessionStorage or use sample data
-let orderData = JSON.parse(sessionStorage.getItem('lastOrder')) || sampleOrder;
+// Get order data from sessionStorage
+let orderData = JSON.parse(sessionStorage.getItem('lastOrder')) || {};
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadOrderConfirmation();
     createConfetti();
+    
+    // Clear the order data from sessionStorage after loading
+    sessionStorage.removeItem('lastOrder');
 });
 
 // Load order confirmation
 function loadOrderConfirmation() {
-    // Set order ID
-    document.getElementById('orderId').textContent = orderData.orderId;
+    // Order ID comes from server-side (JSP attribute) - already set in HTML
+    // Just update the other fields from sessionStorage
     
-    // Set customer information
-    document.getElementById('customerName').textContent = orderData.customerName;
-    document.getElementById('customerEmail').textContent = orderData.customerEmail;
-    document.getElementById('customerPhone').textContent = orderData.customerPhone;
-    document.getElementById('shippingAddress').textContent = orderData.shippingAddress;
-    document.getElementById('paymentMethod').textContent = orderData.paymentMethod;
+    // Set customer information from sessionStorage if available
+    const customerNameEl = document.getElementById('customerName');
+    const customerEmailEl = document.getElementById('customerEmail');
+    const customerPhoneEl = document.getElementById('customerPhone');
+    const shippingAddressEl = document.getElementById('shippingAddress');
+    const paymentMethodEl = document.getElementById('paymentMethod');
+    
+    if (orderData.customerName) {
+        customerNameEl.textContent = orderData.customerName;
+    }
+    if (orderData.customerEmail) {
+        customerEmailEl.textContent = orderData.customerEmail;
+    }
+    if (orderData.customerPhone) {
+        customerPhoneEl.textContent = orderData.customerPhone;
+    }
+    if (orderData.shippingAddress) {
+        shippingAddressEl.textContent = orderData.shippingAddress;
+    }
+    if (orderData.paymentMethod) {
+        paymentMethodEl.textContent = orderData.paymentMethod;
+    }
     
     // Set order items
     const orderItemsContainer = document.getElementById('orderItems');
     if (orderData.items && orderData.items.length > 0) {
         orderItemsContainer.innerHTML = orderData.items.map(item => `
             <div class="product-item">
-                <img src="${item.image}" alt="${item.name}" class="product-image">
+                <img src="${item.image || ''}" alt="${item.name}" class="product-image" 
+                     onerror="this.style.display='none'">
                 <div class="product-info">
                     <div class="product-name">${item.name}</div>
                     <div class="product-meta">
                         <span>Quantity: ${item.quantity}</span>
-                        <span>Price: $${item.price.toFixed(2)} each</span>
+                        <span>Price: $${parseFloat(item.price).toFixed(2)} each</span>
                     </div>
                 </div>
-                <div class="product-price">$${(item.price * item.quantity).toFixed(2)}</div>
+                <div class="product-price">$${(parseFloat(item.price) * parseInt(item.quantity)).toFixed(2)}</div>
             </div>
         `).join('');
     } else {
         orderItemsContainer.innerHTML = `
             <div style="text-align: center; padding: 20px; color: var(--gray);">
                 <i class="fas fa-box-open" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.3;"></i>
-                <p>No items in this order</p>
+                <p>Order placed successfully!</p>
             </div>
         `;
     }
     
     // Set order totals
-    document.getElementById('orderSubtotal').textContent = `$${orderData.subtotal?.toFixed(2) || '0.00'}`;
-    document.getElementById('orderShipping').textContent = `$${orderData.shipping?.toFixed(2) || '9.99'}`;
-    document.getElementById('orderTax').textContent = `$${orderData.tax?.toFixed(2) || '0.00'}`;
-    document.getElementById('orderTotal').textContent = `$${orderData.total?.toFixed(2) || '0.00'}`;
-    
-    // Clear cart
-    sessionStorage.removeItem('nexusCart');
+    if (orderData.subtotal !== undefined) {
+        document.getElementById('orderSubtotal').textContent = `$${parseFloat(orderData.subtotal).toFixed(2)}`;
+    }
+    if (orderData.shipping !== undefined) {
+        document.getElementById('orderShipping').textContent = `$${parseFloat(orderData.shipping).toFixed(2)}`;
+    }
+    if (orderData.tax !== undefined) {
+        document.getElementById('orderTax').textContent = `$${parseFloat(orderData.tax).toFixed(2)}`;
+    }
+    if (orderData.total !== undefined) {
+        document.getElementById('orderTotal').textContent = `$${parseFloat(orderData.total).toFixed(2)}`;
+    }
 }
 
 // Create confetti animation

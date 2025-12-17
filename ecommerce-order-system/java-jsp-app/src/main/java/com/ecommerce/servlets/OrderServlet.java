@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class OrderServlet extends HttpServlet {
     private static final String ORDER_SERVICE_URL = "http://172.17.0.1:5001/api/orders";
+    private static final String CUSTOMER_SERVICE_URL = "http://172.17.0.1:5004/api/customers";
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -21,7 +22,6 @@ public class OrderServlet extends HttpServlet {
 
         if ("/create".equals(pathInfo)) {
             // Get form parameters
-            String customerId = request.getParameter("customer_id");
             String cartData = request.getParameter("cart_data");
             String paymentMethod = request.getParameter("payment_method");
             String firstName = request.getParameter("first_name");
@@ -34,26 +34,59 @@ public class OrderServlet extends HttpServlet {
 
             // Build shipping address
             String shippingAddress = address + ", " + city + ", " + government;
+            String fullAddress = shippingAddress;
 
-            // Build JSON payload for Flask service
-            String jsonPayload = String.format(
-                    "{\"customer_id\": %s, \"products\": %s, \"shipping_address\": \"%s\", \"payment_method\": \"%s\"}",
-                    customerId, cartData, shippingAddress, paymentMethod);
-
-            // Call Flask Order Service
             HttpClient client = HttpClient.newHttpClient();
-            HttpRequest flaskRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(ORDER_SERVICE_URL + "/create"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-                    .build();
 
             try {
-                HttpResponse<String> flaskResponse = client.send(flaskRequest, HttpResponse.BodyHandlers.ofString());
+                // Step 1: Create or find customer via Customer Service
+                String customerPayload = String.format(
+                        "{\"first_name\": \"%s\", \"last_name\": \"%s\", \"email\": \"%s\", \"phone\": \"%s\", \"address\": \"%s\"}",
+                        escapeJson(firstName), escapeJson(lastName), escapeJson(email), escapeJson(phone),
+                        escapeJson(fullAddress));
 
-                if (flaskResponse.statusCode() == 200 || flaskResponse.statusCode() == 201) {
-                    // Parse order_id from response (simple string parsing)
-                    String responseBody = flaskResponse.body();
+                HttpRequest customerRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(CUSTOMER_SERVICE_URL))
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(customerPayload))
+                        .build();
+
+                HttpResponse<String> customerResponse = client.send(customerRequest,
+                        HttpResponse.BodyHandlers.ofString());
+
+                if (customerResponse.statusCode() != 200 && customerResponse.statusCode() != 201) {
+                    request.setAttribute("error", "Failed to create customer: " + customerResponse.body());
+                    request.getRequestDispatcher("/WEB-INF/checkout.jsp").forward(request, response);
+                    return;
+                }
+
+                // Parse customer_id from response
+                String customerResponseBody = customerResponse.body();
+                String customerId = "0";
+                if (customerResponseBody.contains("customer_id")) {
+                    int start = customerResponseBody.indexOf("customer_id") + 14;
+                    int end = customerResponseBody.indexOf(",", start);
+                    if (end == -1)
+                        end = customerResponseBody.indexOf("}", start);
+                    customerId = customerResponseBody.substring(start, end).trim();
+                }
+
+                // Step 2: Create order via Order Service
+                String orderPayload = String.format(
+                        "{\"customer_id\": %s, \"products\": %s, \"shipping_address\": \"%s\", \"payment_method\": \"%s\"}",
+                        customerId, cartData, escapeJson(shippingAddress), escapeJson(paymentMethod));
+
+                HttpRequest orderRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(ORDER_SERVICE_URL + "/create"))
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(orderPayload))
+                        .build();
+
+                HttpResponse<String> orderResponse = client.send(orderRequest, HttpResponse.BodyHandlers.ofString());
+
+                if (orderResponse.statusCode() == 200 || orderResponse.statusCode() == 201) {
+                    // Parse order_id from response
+                    String responseBody = orderResponse.body();
                     String orderId = "0";
                     if (responseBody.contains("order_id")) {
                         int start = responseBody.indexOf("order_id") + 11;
@@ -73,7 +106,7 @@ public class OrderServlet extends HttpServlet {
                     // Forward to confirmation page
                     request.getRequestDispatcher("/WEB-INF/confirmation.jsp").forward(request, response);
                 } else {
-                    request.setAttribute("error", "Failed to create order: " + flaskResponse.body());
+                    request.setAttribute("error", "Failed to create order: " + orderResponse.body());
                     request.getRequestDispatcher("/WEB-INF/checkout.jsp").forward(request, response);
                 }
             } catch (InterruptedException e) {
@@ -84,6 +117,19 @@ public class OrderServlet extends HttpServlet {
         } else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Endpoint not found");
         }
+    }
+
+    /**
+     * Escape special characters for JSON string
+     */
+    private String escapeJson(String input) {
+        if (input == null)
+            return "";
+        return input.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 
     @Override

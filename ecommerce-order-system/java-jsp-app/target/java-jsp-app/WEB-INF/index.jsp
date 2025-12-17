@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/index.css">
 
     <script>
-    window.APP_CONTEXT = '${pageContext.request.contextPath}';
+        window.APP_CONTEXT = '${pageContext.request.contextPath}';
     </script>
     <script src="${pageContext.request.contextPath}/js/index.js" defer></script>
 </head>

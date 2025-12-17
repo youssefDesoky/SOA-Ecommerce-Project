@@ -164,7 +164,7 @@
                     </div>
                     
                     <div class="step-navigation">
-                        <a href="index.jsp" class="btn btn-secondary">
+                        <a href="${pageContext.request.contextPath}/inventory" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i>
                             Continue Shopping
                         </a>
@@ -298,8 +298,8 @@
                         <span id="subtotal">$0.00</span>
                     </div>
                     <div class="total-row">
-                        <span>Shipping</span>
-                        <span id="shipping">$9.99</span>
+                        <span>Discount</span>
+                        <span id="discount">$0.00</span>
                     </div>
                     <div class="total-row">
                         <span>Tax</span>

@@ -21,7 +21,7 @@
     <header class="header">
         <div class="container">
             <nav class="nav">
-                <a href="index.jsp" class="logo">
+                <a href="${pageContext.request.contextPath}/inventory" class="logo">
                     <div class="logo-icon">N</div>
                     <span class="logo-text">Nexus</span>
                 </a>
@@ -145,40 +145,9 @@
                 </div>
             </div>
             
-            <!-- Next Steps -->
-            <div class="next-steps">
-                <h3 class="steps-title">
-                    <i class="fas fa-list-check"></i>
-                    What's Next?
-                </h3>
-                <ul class="steps-list">
-                    <li>
-                        <div class="step-number">1</div>
-                        <div class="step-text">
-                            <strong>Order Processing</strong><br>
-                            We're preparing your items for shipment. You'll receive an email when your order ships.
-                        </div>
-                    </li>
-                    <li>
-                        <div class="step-number">2</div>
-                        <div class="step-text">
-                            <strong>Shipping</strong><br>
-                            Your order will be shipped within 24 hours. Track your shipment using the link in your email.
-                        </div>
-                    </li>
-                    <li>
-                        <div class="step-number">3</div>
-                        <div class="step-text">
-                            <strong>Delivery</strong><br>
-                            Expect your package within 3-5 business days. You'll receive a notification on delivery day.
-                        </div>
-                    </li>
-                </ul>
-            </div>
-            
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <a href="index.jsp" class="btn btn-primary">
+                <a href="${pageContext.request.contextPath}/inventory" class="btn btn-primary">
                     <i class="fas fa-shopping-bag"></i>
                     Continue Shopping
                 </a>

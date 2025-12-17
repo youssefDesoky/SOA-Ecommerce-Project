@@ -423,6 +423,29 @@ function handleFormSubmit(e) {
         customerIdField.value = generateCustomerId();
     }
     
+    // Calculate totals
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = 9.99;
+    const tax = subtotal * 0.14;
+    const total = subtotal + shipping + tax;
+    
+    // Save order data to sessionStorage for confirmation page
+    const orderData = {
+        customerName: document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value,
+        customerEmail: document.getElementById('email').value,
+        customerPhone: document.getElementById('phone').value,
+        shippingAddress: document.getElementById('address').value + ', ' + 
+                        document.getElementById('city').value + ', ' + 
+                        document.getElementById('government').value,
+        paymentMethod: document.querySelector('input[name="payment_method"]:checked').value.replace('_', ' '),
+        items: cart,
+        subtotal: subtotal,
+        shipping: shipping,
+        tax: tax,
+        total: total
+    };
+    sessionStorage.setItem('lastOrder', JSON.stringify(orderData));
+    
     // Show loading overlay
     loadingOverlay.classList.add('active');
     

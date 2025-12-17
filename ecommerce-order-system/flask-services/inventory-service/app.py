@@ -7,7 +7,7 @@ db = mysql.connector.connect(host='localhost', user='root', password='root', dat
 @app.get('/api/inventory/check/<int:product_id>')
 def check_inventory(product_id):
     cur = db.cursor(dictionary = True)
-    cur.execute("Select product_id, product_name, quantity_available, unit_price From inventory where product_id = %s",(product_id,))
+    cur.execute("Select product_id, product_name, quantity_available, unit_price, product_image_url From inventory where product_id = %s",(product_id,))
     row = cur.fetchone()
     
     if not row: 
@@ -18,7 +18,7 @@ def check_inventory(product_id):
 @app.get('/api/inventory')
 def get_inventory():
     cur = db.cursor(dictionary = True)
-    cur.execute("Select product_id, product_name, quantity_available, unit_price from inventory")
+    cur.execute("Select product_id, product_name, quantity_available, unit_price, product_image_url from inventory")
     row = cur.fetchall()
 
     return jsonify(row)

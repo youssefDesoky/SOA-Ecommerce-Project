@@ -72,8 +72,15 @@ public class InventoryServlet extends HttpServlet {
                 // Set default values for other fields
                 product.setCategory(jsonNode.has("category") ? jsonNode.get("category").asText() : "Electronics");
 
-                product.setImage(jsonNode.has("image") ? jsonNode.get("image").asText()
-                        : "https://images.unsplash.com/photo-1505740420928-5e560c06b30e?w=500&auto=format&fit=crop");
+                // Use product_image_url from database, fallback to default image
+                if (jsonNode.has("product_image_url") && !jsonNode.get("product_image_url").isNull()) {
+                    product.setImage(jsonNode.get("product_image_url").asText());
+                } else if (jsonNode.has("image")) {
+                    product.setImage(jsonNode.get("image").asText());
+                } else {
+                    product.setImage(
+                            "https://images.unsplash.com/photo-1505740420928-5e560c06b30e?w=500&auto=format&fit=crop");
+                }
 
                 product.setDescription(jsonNode.has("description") ? jsonNode.get("description").asText()
                         : "Premium electronic product");
