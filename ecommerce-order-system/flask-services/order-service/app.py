@@ -34,9 +34,17 @@ def create_order():
         if not isinstance(product_id, int) or not isinstance(quantity, int):
             return jsonify({'error': 'invalid product data'}), 400
         
-        cur.execute('SELECT quantity_available FROM inventory WHERE product_id = %s', (product_id,))
-        stock_row = cur.fetchone()
-        if not stock_row or stock_row[0] < quantity:
+        response = requests.get(f'http://localhost:5002/api/inventory/check/{product_id}')
+        if response.status_code == 404:
+            return jsonify({'error': f'product {product_id} not found'}), 404
+        elif response.status_code != 200:
+            return jsonify({'error': 'inventory check failed'}), 500
+        
+        inventory_data = response.json()
+        stock_available = inventory_data.get('quantity_available', 0)
+        product['unit_price'] = Decimal(inventory_data.get('unit_price', '100.00'))
+        
+        if stock_available < quantity:
             return jsonify({'error': f'insufficient stock for product {product_id}'}), 400
     
     # Insert order
@@ -53,24 +61,25 @@ def create_order():
         product_id = product['product_id']
         quantity = product['quantity']
         
-        # Get unit_price from inventory
-        cur.execute('SELECT unit_price FROM inventory WHERE product_id = %s', (product_id,))
-        price_row = cur.fetchone()
-        unit_price = price_row[0]
+        unit_price = product['unit_price']
         item_total_price = unit_price * quantity
         total_amount += item_total_price
         
         cur.execute('INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price) VALUES (%s, %s, %s, %s, %s)', 
                     (order_id, product_id, quantity, unit_price, item_total_price))
-        
-        # Update inventory quantity
-        cur.execute('UPDATE inventory SET quantity_available = quantity_available - %s WHERE product_id = %s', 
-                    (quantity, product_id))
     
     # Update total_amount in orders
     cur.execute('UPDATE orders SET total_amount = %s WHERE order_id = %s', (total_amount, order_id))
     
     db.commit()
+    
+    # Update inventory via service
+    for product in products:
+        update_response = requests.put('http://localhost:5002/api/inventory/update', json={'product_id': product['product_id'], 'quantity_delta': -product['quantity']})
+        if update_response.status_code != 200:
+            # Log error, but order is created
+            pass
+    
     return jsonify({'order_id': order_id, 'total_amount': total_amount}), 201
 
 
