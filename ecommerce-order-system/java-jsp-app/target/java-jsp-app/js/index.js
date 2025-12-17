@@ -1,5 +1,6 @@
 const contextPath = window.APP_CONTEXT || '';
 let cart = JSON.parse(localStorage.getItem('nexusCart')) || [];
+let isUpdatingCart = false;
 
 // DOM Elements
 const productsContainer = document.getElementById('products-container');
@@ -47,9 +48,11 @@ function addToCart(productId, productName, price, image) {
 }
 
 function removeFromCart(productId) {
+  isUpdatingCart = true;
   cart = cart.filter(item => item.id !== productId);
   updateCart();
   showNotification('Item removed from cart');
+  setTimeout(() => isUpdatingCart = false, 0);
 }
 
 function updateCart() {
@@ -74,10 +77,10 @@ function updateCart() {
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-price">$${(item.price * item.quantity).toFixed(2)}</div>
           <div class="cart-item-quantity">
-            <button class="quantity-btn" onclick="updateQuantity('${item.id}', ${item.quantity - 1})">-</button>
+            <button class="quantity-btn" onclick="event.stopPropagation(); updateQuantity('${item.id}', ${item.quantity - 1})">-</button>
             <span class="quantity">${item.quantity}</span>
-            <button class="quantity-btn" onclick="updateQuantity('${item.id}', ${item.quantity + 1})">+</button>
-            <button class="remove-item" onclick="removeFromCart('${item.id}')"><i class="fas fa-trash"></i></button>
+            <button class="quantity-btn" onclick="event.stopPropagation(); updateQuantity('${item.id}', ${item.quantity + 1})">+</button>
+            <button class="remove-item" onclick="event.stopPropagation(); removeFromCart('${item.id}')"><i class="fas fa-trash"></i></button>
           </div>
         </div>
       </div>
@@ -89,43 +92,52 @@ function updateCart() {
 }
 
 function updateQuantity(productId, newQuantity) {
-  if (newQuantity < 1) return removeFromCart(productId);
+  isUpdatingCart = true;
+  if (newQuantity < 1) {
+    removeFromCart(productId);
+    setTimeout(() => isUpdatingCart = false, 0);
+    return;
+  }
   const item = cart.find(item => item.id === productId);
   if (item) {
     item.quantity = newQuantity;
     updateCart();
   }
+  setTimeout(() => isUpdatingCart = false, 0);
 }
 
-async function checkout() {
-  try {
-    const res = await fetch(`${contextPath}/api/orders/create`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        customer_id: 1, // You should get this from session
-        items: cart
-      })
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      window.location.href = `${contextPath}/confirmation?orderId=${data.id}`;
-    } else {
-      showNotification('Checkout failed. Please try again.', 'error');
-    }
-  } catch (error) {
-    showNotification('Checkout error. Please try again.', 'error');
-    console.error('Checkout error:', error);
+function checkout() {
+  if (cart.length === 0) {
+    showNotification('Your cart is empty!', 'error');
+    return;
   }
+  // Redirect to checkout page - cart data is already in localStorage
+  window.location.href = `${contextPath}/checkout`;
 }
 
 // UI wiring
 function wireCartSidebar() {
-  cartToggle.addEventListener('click', () => cartSidebar.classList.add('active'));
-  closeCart.addEventListener('click', () => cartSidebar.classList.remove('active'));
+  cartToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    cartSidebar.classList.add('active');
+  });
+  
+  closeCart.addEventListener('click', (e) => {
+    e.stopPropagation();
+    cartSidebar.classList.remove('active');
+  });
+  
+  // Prevent clicks inside cart sidebar from closing it
+  cartSidebar.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+  
+  // Close cart when clicking outside
   document.addEventListener('click', (e) => {
-    if (!cartSidebar.contains(e.target) && !cartToggle.contains(e.target) && cartSidebar.classList.contains('active')) {
+    if (cartSidebar.classList.contains('active') && 
+        !cartSidebar.contains(e.target) && 
+        !cartToggle.contains(e.target) &&
+        !isUpdatingCart) {
       cartSidebar.classList.remove('active');
     }
   });

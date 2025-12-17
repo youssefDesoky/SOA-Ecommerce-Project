@@ -84,6 +84,19 @@ function updateTotals(subtotal) {
     shippingEl.textContent = `$${shipping.toFixed(2)}`;
     taxEl.textContent = `$${tax.toFixed(2)}`;
     totalEl.textContent = `$${total.toFixed(2)}`;
+    
+    // Update hidden cart data field for form submission
+    const cartDataField = document.getElementById('cartData');
+    const customerIdField = document.getElementById('customerId');
+    if (cartDataField) {
+        cartDataField.value = JSON.stringify(cart.map(item => ({
+            product_id: parseInt(item.id),
+            quantity: parseInt(item.quantity)
+        })));
+    }
+    if (customerIdField) {
+        customerIdField.value = generateCustomerId();
+    }
 }
 
 // Setup event listeners
@@ -94,8 +107,11 @@ function setupEventListeners() {
     // Step 2: Back button
     prevStep2Btn.addEventListener('click', goToStep1);
     
-    // Step 2: Place order button
-    placeOrderBtn.addEventListener('click', placeOrder);
+    // Form submission handler
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', handleFormSubmit);
+    }
     
     // Payment method selection
     paymentMethods.forEach(method => {
@@ -385,79 +401,36 @@ function validateStep2() {
     return isValid;
 }
 
-// Place order
-async function placeOrder() {
+// Handle form submission
+function handleFormSubmit(e) {
     if (!validateStep2()) {
+        e.preventDefault();
         alert('Please fix the errors before placing your order.');
-        return;
+        return false;
+    }
+    
+    // Update hidden fields with latest cart data before submission
+    const cartDataField = document.getElementById('cartData');
+    const customerIdField = document.getElementById('customerId');
+    
+    if (cartDataField) {
+        cartDataField.value = JSON.stringify(cart.map(item => ({
+            product_id: parseInt(item.id),
+            quantity: parseInt(item.quantity)
+        })));
+    }
+    if (customerIdField) {
+        customerIdField.value = generateCustomerId();
     }
     
     // Show loading overlay
     loadingOverlay.classList.add('active');
     
-    try {
-        // Prepare order data for your Java backend
-        const orderData = {
-            customer_id: generateCustomerId(),
-            items: cart.map(item => ({
-                product_id: item.id,
-                quantity: item.quantity,
-                price: item.price
-            })),
-            customer_info: customerData,
-            shipping_info: {
-                government: customerData.government,
-                city: customerData.city,
-                address: customerData.address
-            },
-            payment_method: document.querySelector('input[name="payment_method"]:checked').value,
-            payment_details: {},
-            total: parseFloat(totalEl.textContent.replace('$', ''))
-        };
-        
-        // If credit card, add card details (in real app, this would be sent to a payment processor)
-        if (orderData.payment_method === 'credit_card') {
-            orderData.payment_details = {
-                last_four: document.getElementById('cardNumber').value.slice(-4),
-                card_type: 'credit_card'
-            };
-        }
-        
-        // Send order to server using traditional form submission for compatibility
-        const formData = new FormData();
-        formData.append('customer_id', orderData.customer_id);
-        formData.append('items', JSON.stringify(orderData.items));
-        formData.append('customer_info', JSON.stringify(orderData.customer_info));
-        formData.append('payment_method', orderData.payment_method);
-        formData.append('total', orderData.total);
-        
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // For now, simulate a successful response
-        const orderId = 'ORD-' + Date.now().toString().slice(-8);
-        
-        // Store order data in sessionStorage for confirmation page
-        sessionStorage.setItem('orderData', JSON.stringify({
-            orderId: orderId,
-            customerData: customerData,
-            paymentMethod: document.querySelector('input[name="payment_method"]:checked').value,
-            total: parseFloat(totalEl.textContent.replace('$', ''))
-        }));
-        
-        // Clear cart
-        sessionStorage.removeItem('nexusCart');
-        
-        // Redirect to confirmation page
-        const contextPath = window.APP_CONTEXT || '';
-        window.location.href = contextPath + '/confirmation.jsp?orderId=' + orderId;
-        
-    } catch (error) {
-        console.error('Error placing order:', error);
-        alert('Error placing order: ' + error.message);
-    } finally {
-        loadingOverlay.classList.remove('active');
-    }
+    // Clear cart from localStorage (form will submit and redirect)
+    localStorage.removeItem('nexusCart');
+    
+    // Allow form to submit naturally
+    return true;
 }
 
 // Show success step
@@ -476,36 +449,4 @@ function showSuccessStep(orderId) {
 // Generate a customer ID (in a real app, this would come from authentication)
 function generateCustomerId() {
     return Math.floor(1000 + Math.random() * 9000);
-}
-
-// Legacy form submission for backward compatibility
-async function submitLegacyForm() {
-    // This function is kept for backward compatibility with the original form
-    const formData = new FormData();
-    formData.append('customer_id', generateCustomerId());
-    
-    // Add first item from cart (for single product checkout)
-    if (cart.length > 0) {
-        formData.append('product_id', cart[0].id);
-        formData.append('quantity', cart[0].quantity);
-    }
-    
-    try {
-        const response = await fetch(`${contextPath}/api/orders/create`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: new URLSearchParams(formData)
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            sessionStorage.removeItem('nexusCart');
-            window.location.href = 'confirmation.jsp?orderId=' + data.order_id;
-        } else {
-            alert('Error: ' + data.error);
-        }
-    } catch (error) {
-        alert('Error placing order: ' + error);
-    }
 }

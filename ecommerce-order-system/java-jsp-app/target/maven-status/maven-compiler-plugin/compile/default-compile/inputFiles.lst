@@ -3,4 +3,5 @@
 /media/youssef-desoky/Data/SOA Project/ecommerce-order-system/java-jsp-app/src/main/java/com/ecommerce/servlets/OrderServlet.java
 /media/youssef-desoky/Data/SOA Project/ecommerce-order-system/java-jsp-app/src/main/java/com/ecommerce/model/Product.java
 /media/youssef-desoky/Data/SOA Project/ecommerce-order-system/java-jsp-app/src/main/java/com/ecommerce/servlets/CustomerServlet.java
+/media/youssef-desoky/Data/SOA Project/ecommerce-order-system/java-jsp-app/src/main/java/com/ecommerce/servlets/CheckoutServlet.java
 /media/youssef-desoky/Data/SOA Project/ecommerce-order-system/java-jsp-app/src/main/java/com/ecommerce/servlets/InventoryServlet.java

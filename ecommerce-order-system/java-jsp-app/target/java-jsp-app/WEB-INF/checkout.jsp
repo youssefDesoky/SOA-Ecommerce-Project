@@ -20,7 +20,7 @@
     <header class="header">
         <div class="container">
             <nav class="nav">
-                <a href="index.jsp" class="logo">
+                <a href="${pageContext.request.contextPath}/inventory" class="logo">
                     <div class="logo-icon">N</div>
                     <span class="logo-text">Nexus</span>
                 </a>
@@ -51,6 +51,12 @@
 
         <!-- Main Content -->
         <div class="checkout-layout">
+            <!-- Checkout Form -->
+            <form id="checkoutForm" action="<%= request.getContextPath() %>/orders/create" method="POST">
+            <!-- Hidden fields for cart data -->
+            <input type="hidden" id="cartData" name="cart_data" value="">
+            <input type="hidden" id="customerId" name="customer_id" value="">
+            
             <!-- Checkout Steps -->
             <div class="checkout-steps">
                 <!-- Step 1: Customer Information -->
@@ -269,13 +275,14 @@
                             <i class="fas fa-arrow-left"></i>
                             Back to Information
                         </button>
-                        <button type="button" class="btn btn-primary" id="place-order-btn">
+                        <button type="submit" class="btn btn-primary" id="place-order-btn">
                             <i class="fas fa-lock"></i>
                             Place Order
                         </button>
                     </div>
                 </div>
             </div>
+            </form>
             
             <!-- Order Summary -->
             <div class="order-summary">

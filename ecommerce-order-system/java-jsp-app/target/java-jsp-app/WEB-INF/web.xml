@@ -25,6 +25,10 @@
     <servlet-name>OrderServlet</servlet-name>
     <url-pattern>/orders/*</url-pattern>
   </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>OrderServlet</servlet-name>
+    <url-pattern>/api/orders/*</url-pattern>
+  </servlet-mapping>
 
   <!-- Customer Servlet -->
   <servlet>
@@ -59,10 +63,10 @@
   <!-- Checkout Servlet -->
   <servlet>
     <servlet-name>CheckoutServlet</servlet-name>
-    <servlet-class>com.ecommerce.servlets.OrderServlet</servlet-class>
+    <servlet-class>com.ecommerce.servlets.CheckoutServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>CheckoutServlet</servlet-name>
-    <url-pattern>/checkout/*</url-pattern>
+    <url-pattern>/checkout</url-pattern>
   </servlet-mapping>
 </web-app>

@@ -1002,7 +1002,7 @@
     <header class="header">
         <div class="container">
             <nav class="nav">
-                <a href="index.jsp" class="logo">
+                <a href="${pageContext.request.contextPath}/inventory" class="logo">
                     <div class="logo-icon">N</div>
                     <span class="logo-text">Nexus</span>
                 </a>

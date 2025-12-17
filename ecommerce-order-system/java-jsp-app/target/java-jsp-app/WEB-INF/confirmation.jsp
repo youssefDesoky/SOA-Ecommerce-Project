@@ -50,7 +50,7 @@
             
             <!-- Order Number -->
             <div class="order-number" id="orderNumber">
-                Order #<span id="orderId">ORD-<%= request.getParameter("orderId") != null ? request.getParameter("orderId") : "N/A" %></span>
+                Order #<span id="orderId"><%= request.getAttribute("orderId") != null ? request.getAttribute("orderId") : "N/A" %></span>
             </div>
             
             <!-- Order Details -->
@@ -63,25 +63,23 @@
                     <!-- Customer Information -->
                     <div class="detail-group">
                         <h4>Customer Information</h4>
-                        <p id="customerName">Mohamed Salah</p>
-                        <p id="customerEmail" style="color: var(--gray); font-weight: normal; margin-top: 5px;">mohamed.salah@example.com</p>
-                        <p id="customerPhone" style="color: var(--gray); font-weight: normal; margin-top: 5px;">+201234567890</p>
+                        <p id="customerName"><%= request.getAttribute("customerName") != null ? request.getAttribute("customerName") : "Customer" %></p>
+                        <p id="customerEmail" style="color: var(--gray); font-weight: normal; margin-top: 5px;"><%= request.getAttribute("email") != null ? request.getAttribute("email") : "" %></p>
+                        <p id="customerPhone" style="color: var(--gray); font-weight: normal; margin-top: 5px;"></p>
                     </div>
                     
                     <!-- Shipping Address -->
                     <div class="detail-group">
                         <h4>Shipping Address</h4>
                         <p id="shippingAddress">
-                            123 Main Street,<br>
-                            Nasr City, Cairo<br>
-                            Egypt
+                            <%= request.getAttribute("shippingAddress") != null ? request.getAttribute("shippingAddress") : "" %>
                         </p>
                     </div>
                     
                     <!-- Payment Method -->
                     <div class="detail-group">
                         <h4>Payment Method</h4>
-                        <p id="paymentMethod" class="highlight">Cash on Delivery</p>
+                        <p id="paymentMethod" class="highlight"><%= request.getAttribute("paymentMethod") != null ? request.getAttribute("paymentMethod").toString().replace("_", " ") : "Cash on Delivery" %></p>
                         <p style="color: var(--gray); font-weight: normal; margin-top: 5px; font-size: 0.9rem;">
                             Pay when you receive your order
                         </p>
