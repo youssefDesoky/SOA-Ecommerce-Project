@@ -2,15 +2,19 @@ const contextPath = window.APP_CONTEXT || '';
 let cart = JSON.parse(localStorage.getItem('nexusCart')) || [];
 let isUpdatingCart = false;
 
-// DOM Elements
-const productsContainer = document.getElementById('products-container');
-const cartSidebar = document.getElementById('cart-sidebar');
-const cartToggle = document.getElementById('cart-toggle');
-const closeCart = document.getElementById('close-cart');
-const cartItems = document.getElementById('cart-items');
-const cartCount = document.getElementById('cart-count');
-const cartTotal = document.getElementById('cart-total');
-const checkoutBtn = document.getElementById('checkout-btn');
+// DOM Elements - initialized after DOM loads
+let productsContainer, cartSidebar, cartToggle, closeCart, cartItems, cartCount, cartTotal, checkoutBtn;
+
+function initDOMElements() {
+  productsContainer = document.getElementById('products-container');
+  cartSidebar = document.getElementById('cart-sidebar');
+  cartToggle = document.getElementById('cart-toggle');
+  closeCart = document.getElementById('close-cart');
+  cartItems = document.getElementById('cart-items');
+  cartCount = document.getElementById('cart-count');
+  cartTotal = document.getElementById('cart-total');
+  checkoutBtn = document.getElementById('checkout-btn');
+}
 
 // Wire add to cart buttons
 function wireAddToCartButtons() {
@@ -25,9 +29,6 @@ function wireAddToCartButtons() {
     });
   });
 }
-
-// Initialize add to cart buttons when DOM loads
-document.addEventListener('DOMContentLoaded', wireAddToCartButtons);
 
 // Cart functions
 function addToCart(productId, productName, price, image) {
@@ -165,8 +166,10 @@ function showNotification(message, type = 'success') {
 
 // Initialize cart on page load
 document.addEventListener('DOMContentLoaded', () => {
+  initDOMElements();
   updateCart();
   wireCartSidebar();
+  wireAddToCartButtons();
   
   const style = document.createElement('style');
   style.textContent = `

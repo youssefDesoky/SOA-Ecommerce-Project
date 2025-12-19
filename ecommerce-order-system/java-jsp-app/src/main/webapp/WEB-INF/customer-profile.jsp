@@ -1008,7 +1008,7 @@
                 </a>
                 
                 <div class="header-actions">
-                    <button class="cart-btn" id="cart-toggle">
+                    <button class="cart-btn" id="cart-toggle" onclick="alert('Cart functionality not implemented yet')">
                         <i class="fas fa-shopping-bag"></i>
                         <span class="cart-count" id="cart-count">0</span>
                     </button>
@@ -1056,7 +1056,7 @@
                             Dashboard
                         </h2>
                         <div class="section-actions">
-                            <button class="btn btn-primary" onclick="window.location.href='index'">
+                            <button class="btn btn-primary" onclick="window.location.href='${pageContext.request.contextPath}/inventory'">
                                 <i class="fas fa-shopping-bag"></i>
                                 Continue Shopping
                             </button>
@@ -1111,6 +1111,16 @@
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+
+                            <!-- Recent Activity -->
+                            <div class="recent-activity">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                    <h3 style="font-size: 1.3rem; font-weight: 600;">Recent Activity</h3>
+                                </div>
+                                <ul class="activity-list" id="activityList">
+                                    <!-- Activity items will be loaded here -->
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -1171,6 +1181,29 @@
                                 <input type="tel" class="form-input" id="profilePhone" name="phone" required>
                                 <div class="error-message" id="phoneError"></div>
                             </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Date of Birth
+                                </label>
+                                <input type="date" class="form-input" id="profileDob" name="dob">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Gender
+                                </label>
+                                <div style="display: flex; gap: 20px; margin-top: 8px;">
+                                    <label style="display: flex; align-items: center; gap: 8px;">
+                                        <input type="radio" name="gender" value="male" style="margin: 0;">
+                                        Male
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px;">
+                                        <input type="radio" name="gender" value="female" style="margin: 0;">
+                                        Female
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </form>
                         </div>
@@ -1189,7 +1222,7 @@
                     <div class="accordion-body">
                         <div class="accordion-content">
                             <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-                                <button class="btn btn-primary" onclick="window.location.href='index.jsp'">
+                                <button class="btn btn-primary" onclick="window.location.href='${pageContext.request.contextPath}/inventory'">
                                     <i class="fas fa-shopping-cart"></i>
                                     Shop Now
                                 </button>
@@ -1216,7 +1249,7 @@
                                 <i class="fas fa-shopping-bag"></i>
                                 <h3>No Orders Yet</h3>
                                 <p style="margin-bottom: 20px;">You haven't placed any orders yet.</p>
-                                <button class="btn btn-primary" onclick="window.location.href='index.jsp'">
+                                <button class="btn btn-primary" onclick="window.location.href='${pageContext.request.contextPath}/inventory'">
                                     <i class="fas fa-shopping-cart"></i>
                                     Start Shopping
                                 </button>
@@ -1419,12 +1452,10 @@
             
             // Update avatar
             const avatar = document.getElementById('userAvatar');
-            const currentAvatar = document.getElementById('currentAvatar');
             avatar.textContent = user.avatar;
-            currentAvatar.textContent = user.avatar;
             
             // Update name and email
-            document.getElementById('userName').textContent = `\${user.firstName} \${user.lastName}`;
+            document.getElementById('userName').textContent = `${user.firstName} ${user.lastName}`;
             document.getElementById('userEmail').textContent = user.email;
             
             // Update profile form
@@ -1435,7 +1466,7 @@
             document.getElementById('profileDob').value = user.dob;
             
             // Set gender
-            const genderRadio = document.querySelector(`input[name="gender"][value="\${user.gender}"]`);
+            const genderRadio = document.querySelector(`input[name="gender"][value="${user.gender}"]`);
             if (genderRadio) genderRadio.checked = true;
         }
 
@@ -1446,12 +1477,12 @@
             activityList.innerHTML = sampleData.activity.map(activity => `
                 <li class="activity-item">
                     <div class="activity-icon">
-                        <i class="fas fa-\${getActivityIcon(activity.title)}"></i>
+                        <i class="fas fa-${getActivityIcon(activity.title)}"></i>
                     </div>
                     <div class="activity-content">
-                        <div class="activity-title">\${activity.title}</div>
-                        <div class="activity-description">\${activity.description}</div>
-                        <div class="activity-time">\${formatTime(activity.time)}</div>
+                        <div class="activity-title">${activity.title}</div>
+                        <div class="activity-description">${activity.description}</div>
+                        <div class="activity-time">${formatTime(activity.time)}</div>
                     </div>
                 </li>
             `).join('');
@@ -1461,19 +1492,19 @@
             recentOrders.innerHTML = sampleData.orders.map(order => `
                 <tr>
                     <td style="padding: 10px;">
-                        <a href="order-details.jsp?orderId=\${order.id}" style="color: var(--primary); text-decoration: none; font-weight: 600;">
-                            \${order.id}
+                        <a href="order-details.jsp?orderId=${order.id}" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+                            ${order.id}
                         </a>
                     </td>
-                    <td style="padding: 10px;">\${formatDate(order.date)}</td>
-                    <td style="padding: 10px;">$\${order.total.toFixed(2)}</td>
+                    <td style="padding: 10px;">${formatDate(order.date)}</td>
+                    <td style="padding: 10px;">$${order.total.toFixed(2)}</td>
                     <td style="padding: 10px;">
-                        <span class="order-status \${order.status}">
-                            \${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        <span class="order-status ${order.status}">
+                            ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                         </span>
                     </td>
                     <td style="padding: 10px;">
-                        <a href="order-details.jsp?orderId=\${order.id}" class="btn btn-secondary btn-sm">
+                        <a href="order-details.jsp?orderId=${order.id}" class="btn btn-secondary btn-sm">
                             <i class="fas fa-eye"></i>
                         </a>
                     </td>
@@ -1544,9 +1575,9 @@
         
         // Switch between sections (for compatibility with existing code)
         function switchSection(section) {
-            const targetSection = document.getElementById(`\${section}-section`);
+            const targetSection = document.getElementById(`${section}-section`);
             if (targetSection) {
-                toggleAccordion(`\${section}-section`);
+                toggleAccordion(`${section}-section`);
             }
         }
 
@@ -1564,20 +1595,20 @@
             emptyOrders.style.display = 'none';
             ordersTable.innerHTML = sampleData.orders.map(order => `
                 <tr>
-                    <td class="order-id">\${order.id}</td>
-                    <td>\${formatDate(order.date)}</td>
-                    <td>\${order.items} item\${order.items > 1 ? 's' : ''}</td>
-                    <td>$\${order.total.toFixed(2)}</td>
+                    <td class="order-id">${order.id}</td>
+                    <td>${formatDate(order.date)}</td>
+                    <td>${order.items} item${order.items > 1 ? 's' : ''}</td>
+                    <td>$${order.total.toFixed(2)}</td>
                     <td>
                         <div class="order-actions">
-                            <a href="order-details.jsp?orderId=\${order.id}" class="btn btn-secondary btn-sm">
+                            <a href="order-details.jsp?orderId=${order.id}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <button class="btn btn-secondary btn-sm" onclick="reorderItems('\${order.id}')">
+                            <button class="btn btn-secondary btn-sm" onclick="reorderItems('${order.id}')">
                                 <i class="fas fa-redo"></i>
                             </button>
-                            \${order.status === 'processing' ? `
-                                <button class="btn btn-danger btn-sm" onclick="cancelOrder('\${order.id}')">
+                            ${order.status === 'processing' ? `
+                                <button class="btn btn-danger btn-sm" onclick="cancelOrder('${order.id}')">
                                     <i class="fas fa-times"></i>
                                 </button>
                             ` : ''}
@@ -1592,16 +1623,16 @@
             const notificationsList = document.getElementById('notificationsList');
             
             notificationsList.innerHTML = sampleData.notifications.map(notification => `
-                <div class="setting-option" style="align-items: flex-start; \${notification.read ? 'opacity: 0.7;' : 'background: rgba(58, 54, 224, 0.05);'}">
+                <div class="setting-option" style="align-items: flex-start; ${notification.read ? 'opacity: 0.7;' : 'background: rgba(58, 54, 224, 0.05);'}">
                     <div class="setting-info">
-                        <h4>\${notification.title}</h4>
-                        <p>\${notification.message}</p>
+                        <h4>${notification.title}</h4>
+                        <p>${notification.message}</p>
                         <div style="color: var(--gray); font-size: 0.85rem; margin-top: 5px;">
-                            \${formatTime(notification.time)}
+                            ${formatTime(notification.time)}
                         </div>
                     </div>
-                    \${!notification.read ? `
-                        <button class="btn btn-secondary btn-sm" onclick="markAsRead(\${notification.id})">
+                    ${!notification.read ? `
+                        <button class="btn btn-secondary btn-sm" onclick="markAsRead(${notification.id})">
                             Mark as Read
                         </button>
                     ` : ''}
@@ -1616,13 +1647,13 @@
             sessionsList.innerHTML = sampleData.sessions.map(session => `
                 <div class="setting-option">
                     <div class="setting-info">
-                        <h4>\${session.device}</h4>
-                        <p>\${session.location} • \${formatTime(session.time)}</p>
+                        <h4>${session.device}</h4>
+                        <p>${session.location} • ${formatTime(session.time)}</p>
                     </div>
-                    \${session.current ? `
+                    ${session.current ? `
                         <span style="color: var(--success); font-weight: 600;">Current</span>
                     ` : `
-                        <button class="btn btn-danger btn-sm" onclick="logoutSession(\${session.id})">
+                        <button class="btn btn-danger btn-sm" onclick="logoutSession(${session.id})">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
                     `}
@@ -1640,8 +1671,8 @@
             const requiredFields = ['first_name', 'last_name', 'email', 'phone'];
             
             requiredFields.forEach(field => {
-                const input = form.querySelector(`[name="\${field}"]`);
-                const error = document.getElementById(`\${field}Error`);
+                const input = form.querySelector(`[name="${field}"]`);
+                const error = document.getElementById(`${field}Error`);
                 
                 if (!input.value.trim()) {
                     showError(field, 'This field is required');
@@ -1682,11 +1713,9 @@
             
             // Update UI
             const avatar = document.getElementById('userAvatar');
-            const currentAvatar = document.getElementById('currentAvatar');
             avatar.textContent = userData.firstName.charAt(0) + userData.lastName.charAt(0);
-            currentAvatar.textContent = userData.firstName.charAt(0) + userData.lastName.charAt(0);
             
-            document.getElementById('userName').textContent = `\${userData.firstName} \${userData.lastName}`;
+            document.getElementById('userName').textContent = `${userData.firstName} ${userData.lastName}`;
             document.getElementById('userEmail').textContent = userData.email;
             
             alert('Profile updated successfully!');
@@ -1704,7 +1733,48 @@
             alert('All notifications marked as read!');
         }
 
+        function markAsRead(id) {
+            const notification = sampleData.notifications.find(n => n.id === id);
+            if (notification) {
+                notification.read = true;
+                loadNotifications();
+            }
+        }
+
+        function logoutSession(id) {
+            if (confirm('Are you sure you want to logout this session?')) {
+                // In a real app, this would call an API
+                alert('Session logged out successfully!');
+                loadSessions();
+            }
+        }
+
+        // Order functions
+        function reorderItems(orderId) {
+            alert(`Reordering items from order ${orderId}`);
+            // In a real app, this would add items back to cart
+        }
+
+        function cancelOrder(orderId) {
+            if (confirm(`Are you sure you want to cancel order ${orderId}?`)) {
+                // In a real app, this would call an API
+                alert('Order cancelled successfully!');
+                loadOrders();
+            }
+        }
+
         // Utility functions
+
+        function getActivityIcon(title) {
+            const iconMap = {
+                'Order Placed': 'shopping-bag',
+                'Product Reviewed': 'star',
+                'Address Added': 'map-marker-alt',
+                'Profile Updated': 'user',
+                'Wishlist Item Added': 'heart'
+            };
+            return iconMap[title] || 'circle';
+        }
 
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -1725,9 +1795,9 @@
                 const hours = Math.floor(diff / (60 * 60 * 1000));
                 if (hours === 0) {
                     const minutes = Math.floor(diff / (60 * 1000));
-                    return `\${minutes} minute\${minutes === 1 ? '' : 's'} ago`;
+                    return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
                 }
-                return `\${hours} hour\${hours === 1 ? '' : 's'} ago`;
+                return `${hours} hour${hours === 1 ? '' : 's'} ago`;
             }
             
             // Otherwise show date
@@ -1745,19 +1815,19 @@
         }
 
         function showError(field, message) {
-            const errorEl = document.getElementById(`\${field}Error`);
+            const errorEl = document.getElementById(`${field}Error`);
             if (errorEl) {
                 errorEl.textContent = message;
                 errorEl.classList.add('show');
-                document.getElementById(`profile\${field.charAt(0).toUpperCase() + field.slice(1)}`).classList.add('error');
+                document.getElementById(`profile${field.charAt(0).toUpperCase() + field.slice(1)}`).classList.add('error');
             }
         }
 
         function clearError(field) {
-            const errorEl = document.getElementById(`\${field}Error`);
+            const errorEl = document.getElementById(`${field}Error`);
             if (errorEl) {
                 errorEl.classList.remove('show');
-                document.getElementById(`profile\${field.charAt(0).toUpperCase() + field.slice(1)}`).classList.remove('error');
+                document.getElementById(`profile${field.charAt(0).toUpperCase() + field.slice(1)}`).classList.remove('error');
             }
         }
 
@@ -1783,7 +1853,7 @@
                 
                 // Redirect to login page (in a real app)
                 alert('You have been logged out successfully!');
-                window.location.href = 'index.jsp';
+                window.location.href = '${pageContext.request.contextPath}/inventory';
             }
         }
 
