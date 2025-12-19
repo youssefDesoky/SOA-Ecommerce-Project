@@ -1,5 +1,6 @@
 package com.ecommerce.servlets;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -14,7 +15,7 @@ public class PricingServlet extends HttpServlet {
 
     private static final String PRICING_SERVICE_URL = "http://172.17.0.1:5003/api/pricing";
 
-    // POST /api/pricing/calculate
+    // POST /pricing/calculate
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -22,18 +23,20 @@ public class PricingServlet extends HttpServlet {
         String pathInfo = request.getPathInfo(); // /calculate
 
         if (pathInfo != null && pathInfo.equals("/calculate")) {
-            String productId = request.getParameter("product_id");
-            String quantity = request.getParameter("quantity");
-
-            String jsonPayload = String.format(
-                    "{\"product_id\":%s,\"quantity\":%s}",
-                    productId, quantity);
+            // Read JSON body from request
+            StringBuilder jsonBody = new StringBuilder();
+            try (BufferedReader reader = request.getReader()) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    jsonBody.append(line);
+                }
+            }
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest flaskRequest = HttpRequest.newBuilder()
                     .uri(URI.create(PRICING_SERVICE_URL + "/calculate"))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
                     .build();
 
             try {

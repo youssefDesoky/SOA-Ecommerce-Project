@@ -107,24 +107,7 @@
                 </div>
             </div>
             
-            <!-- Delivery Estimate -->
-            <div class="delivery-estimate">
-                <div class="delivery-icon">
-                    <i class="fas fa-shipping-fast"></i>
-                </div>
-                <div class="delivery-info">
-                    <h4>Estimated Delivery</h4>
-                    <p id="deliveryDate">
-                        <%
-                            java.util.Calendar cal = java.util.Calendar.getInstance();
-                            cal.add(java.util.Calendar.DATE, 3);
-                            String deliveryDate = new java.text.SimpleDateFormat("EEEE, MMMM dd").format(cal.getTime());
-                        %>
-                        <%= deliveryDate %> (3-5 business days)
-                    </p>
-                </div>
-            </div>
-            
+
             <!-- Order Total -->
             <div class="order-total">
                 <div class="total-row">
@@ -132,8 +115,8 @@
                     <span id="orderSubtotal">$0.00</span>
                 </div>
                 <div class="total-row">
-                    <span>Shipping</span>
-                    <span id="orderShipping">$9.99</span>
+                    <span>Discount</span>
+                    <span id="orderDiscount" style="color: var(--success);">$0.00</span>
                 </div>
                 <div class="total-row">
                     <span>Tax</span>

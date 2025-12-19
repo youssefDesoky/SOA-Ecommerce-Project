@@ -43,10 +43,6 @@
                 <div class="step-circle">2</div>
                 <div class="step-label">Payment</div>
             </div>
-            <div class="progress-step" id="step-3-indicator">
-                <div class="step-circle">3</div>
-                <div class="step-label">Confirmation</div>
-            </div>
         </div>
 
         <!-- Main Content -->
@@ -194,7 +190,7 @@
                             <div class="payment-info">
                                 <div class="payment-name">Cash on Delivery</div>
                                 <div class="payment-description">
-                                    Pay with cash when your order arrives. An additional 10 EGP service fee applies.
+                                    Pay with cash when your order arrives.
                                 </div>
                             </div>
                         </label>
@@ -299,7 +295,7 @@
                     </div>
                     <div class="total-row">
                         <span>Discount</span>
-                        <span id="discount">$0.00</span>
+                        <span id="discount" style="color: var(--success);">$0.00</span>
                     </div>
                     <div class="total-row">
                         <span>Tax</span>
