@@ -43,10 +43,6 @@
                 <div class="step-circle">2</div>
                 <div class="step-label">Payment</div>
             </div>
-            <div class="progress-step" id="step-3-indicator">
-                <div class="step-circle">3</div>
-                <div class="step-label">Confirmation</div>
-            </div>
         </div>
 
         <!-- Main Content -->
@@ -164,7 +160,7 @@
                     </div>
                     
                     <div class="step-navigation">
-                        <a href="index.jsp" class="btn btn-secondary">
+                        <a href="${pageContext.request.contextPath}/inventory" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i>
                             Continue Shopping
                         </a>
@@ -194,7 +190,7 @@
                             <div class="payment-info">
                                 <div class="payment-name">Cash on Delivery</div>
                                 <div class="payment-description">
-                                    Pay with cash when your order arrives. An additional 10 EGP service fee applies.
+                                    Pay with cash when your order arrives.
                                 </div>
                             </div>
                         </label>
@@ -298,8 +294,8 @@
                         <span id="subtotal">$0.00</span>
                     </div>
                     <div class="total-row">
-                        <span>Shipping</span>
-                        <span id="shipping">$9.99</span>
+                        <span>Discount</span>
+                        <span id="discount" style="color: var(--success);">$0.00</span>
                     </div>
                     <div class="total-row">
                         <span>Tax</span>

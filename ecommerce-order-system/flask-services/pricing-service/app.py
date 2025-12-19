@@ -28,12 +28,12 @@ def calculate_pricing():
     subtotal = Decimal(0)
     
     # Get tax rate based on region
-    if region:
+    if region and region.strip():
         cursor.execute('SELECT tax_rate FROM tax_rates WHERE region = %s', (region,))
         tax_row = cursor.fetchone()
-        tax_rate = (Decimal(tax_row['tax_rate']) / 100) if tax_row else Decimal(0.14)
+        tax_rate = (Decimal(tax_row['tax_rate']) / 100) if tax_row else Decimal(0) # Default to 0% if region not found
     else:
-        tax_rate = Decimal(0.14)  # default tax rate
+        tax_rate = Decimal(0) # Default tax rate if no region provided
 
     for product in products:
         product_id = product.get('product_id')

@@ -64,18 +64,97 @@ function loadOrderConfirmation() {
         `;
     }
     
-    // Set order totals
-    if (orderData.subtotal !== undefined) {
-        document.getElementById('orderSubtotal').textContent = `$${parseFloat(orderData.subtotal).toFixed(2)}`;
+    // Calculate pricing using the pricing servlet
+    calculateOrderPricing();
+}
+
+// Calculate order pricing using the pricing servlet
+async function calculateOrderPricing() {
+    if (!orderData || !orderData.items || orderData.items.length === 0) return;
+    
+    console.log
+
+    // Extract region from shipping address (format: "address, city, government")
+    // Prefer explicit region saved in the order data; fallback to parsing shippingAddress
+    let region = '';
+    if (orderData.region && orderData.region.trim()) {
+        region = orderData.region.trim();
+    } else if (orderData.shippingAddress) {
+        const addressParts = orderData.shippingAddress.split(',');
+        if (addressParts.length >= 3) {
+            region = addressParts[addressParts.length - 1].trim();
+        }
     }
-    if (orderData.shipping !== undefined) {
-        document.getElementById('orderShipping').textContent = `$${parseFloat(orderData.shipping).toFixed(2)}`;
-    }
-    if (orderData.tax !== undefined) {
-        document.getElementById('orderTax').textContent = `$${parseFloat(orderData.tax).toFixed(2)}`;
-    }
-    if (orderData.total !== undefined) {
-        document.getElementById('orderTotal').textContent = `$${parseFloat(orderData.total).toFixed(2)}`;
+    
+    // Prepare products data
+    const products = orderData.items.map(item => ({
+        product_id: parseInt(item.id),
+        quantity: parseInt(item.quantity),
+        unit_price: parseFloat(item.price)
+    }));
+    
+    try {
+        const response = await fetch(`${window.APP_CONTEXT}/pricing/calculate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                products: products,
+                region: region
+            })
+        });
+        
+        if (response.ok) {
+            const pricingData = await response.json();
+            
+            // Calculate total discount
+            let totalDiscount = 0;
+            if (pricingData.items) {
+                totalDiscount = pricingData.items.reduce((sum, item) => 
+                    sum + (parseFloat(item.total_before_discount) - parseFloat(item.discounted_total)), 0);
+            }
+            
+            // Update the display with pricing data
+            document.getElementById('orderSubtotal').textContent = `$${parseFloat(pricingData.subtotal || 0).toFixed(2)}`;
+            document.getElementById('orderDiscount').textContent = totalDiscount > 0 ? `-$${totalDiscount.toFixed(2)}` : '$0.00';
+            document.getElementById('orderTax').textContent = `$${parseFloat(pricingData.tax || 0).toFixed(2)}`;
+            document.getElementById('orderTotal').textContent = `$${parseFloat(pricingData.total || 0).toFixed(2)}`;
+        } else {
+            console.error('Failed to calculate pricing for confirmation');
+            // Fallback to sessionStorage data
+            if (orderData.subtotal !== undefined) {
+                document.getElementById('orderSubtotal').textContent = `$${parseFloat(orderData.subtotal).toFixed(2)}`;
+            }
+            if (orderData.discount !== undefined) {
+                const discountEl = document.getElementById('orderDiscount');
+                const discountValue = parseFloat(orderData.discount);
+                discountEl.textContent = discountValue > 0 ? `-$${discountValue.toFixed(2)}` : '$0.00';
+            }
+            if (orderData.tax !== undefined) {
+                document.getElementById('orderTax').textContent = `$${parseFloat(orderData.tax).toFixed(2)}`;
+            }
+            if (orderData.total !== undefined) {
+                document.getElementById('orderTotal').textContent = `$${parseFloat(orderData.total).toFixed(2)}`;
+            }
+        }
+    } catch (error) {
+        console.error('Error calculating pricing for confirmation:', error);
+        // Fallback to sessionStorage data
+        if (orderData.subtotal !== undefined) {
+            document.getElementById('orderSubtotal').textContent = `$${parseFloat(orderData.subtotal).toFixed(2)}`;
+        }
+        if (orderData.discount !== undefined) {
+            const discountEl = document.getElementById('orderDiscount');
+            const discountValue = parseFloat(orderData.discount);
+            discountEl.textContent = discountValue > 0 ? `-$${discountValue.toFixed(2)}` : '$0.00';
+        }
+        if (orderData.tax !== undefined) {
+            document.getElementById('orderTax').textContent = `$${parseFloat(orderData.tax).toFixed(2)}`;
+        }
+        if (orderData.total !== undefined) {
+            document.getElementById('orderTotal').textContent = `$${parseFloat(orderData.total).toFixed(2)}`;
+        }
     }
 }
 

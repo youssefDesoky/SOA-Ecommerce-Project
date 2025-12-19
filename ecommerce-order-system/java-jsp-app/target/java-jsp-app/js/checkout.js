@@ -1,9 +1,10 @@
 let cart = JSON.parse(localStorage.getItem('nexusCart')) || [];
 let currentStep = 1;
 let customerData = {};
+let pricingData = null; // Store pricing data from the service
 
 // DOM Elements - declare but don't initialize yet
-let cartItemsSummary, subtotalEl, shippingEl, taxEl, totalEl, loadingOverlay, confirmedOrderId;
+let cartItemsSummary, subtotalEl, discountEl, taxEl, totalEl, loadingOverlay;
 let step1, step2, step3;
 let step1Indicator, step2Indicator, step3Indicator;
 let nextStep1Btn, prevStep2Btn, placeOrderBtn;
@@ -14,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize DOM references INSIDE DOMContentLoaded
     cartItemsSummary = document.getElementById('cartItemsSummary');
     subtotalEl = document.getElementById('subtotal');
-    shippingEl = document.getElementById('shipping');
+    discountEl = document.getElementById('discount');
     taxEl = document.getElementById('tax');
     totalEl = document.getElementById('total');
     loadingOverlay = document.getElementById('loadingOverlay');
@@ -51,7 +52,7 @@ function loadOrderSummary() {
                 <p>Your cart is empty</p>
             </div>
         `;
-        updateTotals(0);
+        updateTotals(0, 0, 0, 0);
         return;
     }
     
@@ -69,23 +70,7 @@ function loadOrderSummary() {
         </div>
     `).join('');
     
-    // Calculate totals
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    updateTotals(subtotal);
-}
-
-// Update totals
-function updateTotals(subtotal) {
-    const shipping = 9.99;
-    const tax = subtotal * 0.14; // 14% VAT for Egypt
-    const total = subtotal + shipping + tax;
-    
-    subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
-    shippingEl.textContent = `$${shipping.toFixed(2)}`;
-    taxEl.textContent = `$${tax.toFixed(2)}`;
-    totalEl.textContent = `$${total.toFixed(2)}`;
-    
-    // Update hidden cart data field for form submission
+    // Update hidden cart data field
     const cartDataField = document.getElementById('cartData');
     const customerIdField = document.getElementById('customerId');
     if (cartDataField) {
@@ -97,6 +82,113 @@ function updateTotals(subtotal) {
     if (customerIdField) {
         customerIdField.value = generateCustomerId();
     }
+    
+    // Call pricing service to get accurate pricing
+    calculatePricing();
+}
+
+// Call pricing service to calculate order totals with discounts and taxes
+async function calculatePricing() {
+    const governmentEl = document.getElementById('government');
+    const region = governmentEl ? governmentEl.value : '';
+    
+    // Prepare products data for pricing service
+    const products = cart.map(item => ({
+        product_id: parseInt(item.id),
+        quantity: parseInt(item.quantity),
+        unit_price: parseFloat(item.price)
+    }));
+    
+    try {
+        const response = await fetch(`${window.APP_CONTEXT}/pricing/calculate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                products: products,
+                region: region
+            })
+        });
+        
+        if (response.ok) {
+            pricingData = await response.json();
+            
+            // Calculate subtotal before discount and total discount
+            let subtotalBeforeDiscount = 0;
+            let totalDiscount = 0;
+            
+            if (pricingData.items) {
+                pricingData.items.forEach(item => {
+                    subtotalBeforeDiscount += parseFloat(item.total_before_discount);
+                    totalDiscount += parseFloat(item.total_before_discount) - parseFloat(item.discounted_total);
+                });
+            }
+            
+            const subtotal = parseFloat(pricingData.subtotal) || 0;
+            const tax = parseFloat(pricingData.tax) || 0;
+            const total = parseFloat(pricingData.total) || 0;
+            
+            updateTotals(subtotalBeforeDiscount, totalDiscount, tax, total);
+            
+            // Update cart items display with discount info
+            updateCartItemsWithDiscount(pricingData.items);
+        } else {
+            // Fallback to local calculation
+            console.warn('Pricing service unavailable, using local calculation');
+            fallbackLocalCalculation();
+        }
+    } catch (error) {
+        console.error('Error calling pricing service:', error);
+        fallbackLocalCalculation();
+    }
+}
+
+// Update cart items display with discount information
+function updateCartItemsWithDiscount(items) {
+    if (!items || !cartItemsSummary) return;
+    
+    cartItemsSummary.innerHTML = cart.map((cartItem) => {
+        const pricingItem = items.find(p => p.product_id === parseInt(cartItem.id));
+        const discountPercent = pricingItem ? parseFloat(pricingItem.discount_percent) : 0;
+        const discountedTotal = pricingItem ? parseFloat(pricingItem.discounted_total) : (cartItem.price * cartItem.quantity);
+        const originalTotal = cartItem.price * cartItem.quantity;
+        
+        return `
+            <div class="cart-item-summary">
+                <div class="item-image" style="background-image: url('${cartItem.image}'); background-size: cover; background-position: center;">
+                    ${!cartItem.image ? '<i class="fas fa-box" style="color: var(--gray); font-size: 1.5rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>' : ''}
+                </div>
+                <div class="item-details">
+                    <div class="item-name">${cartItem.name}</div>
+                    <div class="item-quantity">Quantity: ${cartItem.quantity}</div>
+                    ${discountPercent > 0 ? `<div class="item-discount" style="color: var(--success); font-size: 0.8rem;"><i class="fas fa-tag"></i> ${discountPercent}% off</div>` : ''}
+                </div>
+                <div class="item-price">
+                    ${discountPercent > 0 ? `<span style="text-decoration: line-through; color: var(--gray); font-size: 0.85rem;">$${originalTotal.toFixed(2)}</span><br>` : ''}
+                    <span ${discountPercent > 0 ? 'style="color: var(--success);"' : ''}>$${discountedTotal.toFixed(2)}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Fallback to local calculation if pricing service is unavailable
+function fallbackLocalCalculation() {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const discount = 0;
+    const tax = subtotal * 0.14; // 14% VAT default
+    const total = subtotal - discount + tax;
+    
+    updateTotals(subtotal, discount, tax, total);
+}
+
+// Update totals display
+function updateTotals(subtotal, discount, tax, total) {
+    subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+    discountEl.textContent = discount > 0 ? `-$${discount.toFixed(2)}` : '$0.00';
+    taxEl.textContent = `$${tax.toFixed(2)}`;
+    totalEl.textContent = `$${total.toFixed(2)}`;
 }
 
 // Setup event listeners
@@ -106,6 +198,16 @@ function setupEventListeners() {
     
     // Step 2: Back button
     prevStep2Btn.addEventListener('click', goToStep1);
+    
+    // Government dropdown - recalculate pricing when region changes
+    const governmentSelect = document.getElementById('government');
+    if (governmentSelect) {
+        governmentSelect.addEventListener('change', () => {
+            if (cart.length > 0) {
+                calculatePricing();
+            }
+        });
+    }
     
     // Form submission handler
     const checkoutForm = document.getElementById('checkoutForm');
@@ -425,9 +527,9 @@ function handleFormSubmit(e) {
     
     // Calculate totals
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = 9.99;
+    const discount = 0; // Will be calculated by pricing service
     const tax = subtotal * 0.14;
-    const total = subtotal + shipping + tax;
+    const total = subtotal - discount + tax;
     
     // Save order data to sessionStorage for confirmation page
     const orderData = {
@@ -440,7 +542,7 @@ function handleFormSubmit(e) {
         paymentMethod: document.querySelector('input[name="payment_method"]:checked').value.replace('_', ' '),
         items: cart,
         subtotal: subtotal,
-        shipping: shipping,
+        discount: discount,
         tax: tax,
         total: total
     };
