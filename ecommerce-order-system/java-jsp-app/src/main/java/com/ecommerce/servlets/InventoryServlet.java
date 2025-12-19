@@ -10,16 +10,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ecommerce.model.Product;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@WebServlet(urlPatterns = {"/inventory/*", "/index", "/"})
 public class InventoryServlet extends HttpServlet {
-    private static final String INVENTORY_SERVICE_URL = "http://172.17.0.1:5002/api/inventory";
+    private static final String INVENTORY_SERVICE_URL = "http://127.0.0.1:5002/api/inventory";
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper();
 

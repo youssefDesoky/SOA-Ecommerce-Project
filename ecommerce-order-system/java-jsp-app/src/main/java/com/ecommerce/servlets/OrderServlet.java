@@ -5,14 +5,17 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@WebServlet(urlPatterns = {"/orders/*", "/api/orders/*", "/submitOrder"})
 public class OrderServlet extends HttpServlet {
-    private static final String ORDER_SERVICE_URL = "http://172.17.0.1:5001/api/orders";
-    private static final String CUSTOMER_SERVICE_URL = "http://172.17.0.1:5004/api/customers";
+    private static final String ORDER_SERVICE_URL = "http://127.0.0.1:5001/api/orders";
+    private static final String CUSTOMER_SERVICE_URL = "http://127.0.0.1:5004/api/customers";
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

@@ -1056,7 +1056,7 @@
                             Dashboard
                         </h2>
                         <div class="section-actions">
-                            <button class="btn btn-primary" onclick="window.location.href='index.jsp'">
+                            <button class="btn btn-primary" onclick="window.location.href='index'">
                                 <i class="fas fa-shopping-bag"></i>
                                 Continue Shopping
                             </button>

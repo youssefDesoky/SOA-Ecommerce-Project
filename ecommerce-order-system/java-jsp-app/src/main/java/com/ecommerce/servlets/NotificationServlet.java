@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -14,7 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet("/notification")
 public class NotificationServlet extends HttpServlet {
 
-    private static final String NOTIFICATION_SERVICE_URL = "http://172.17.0.1:5005/api/notifications";
+    private static final String NOTIFICATION_SERVICE_URL = "http://127.0.0.1:5005/api/notifications";
 
     // POST /api/notifications/send
     @Override

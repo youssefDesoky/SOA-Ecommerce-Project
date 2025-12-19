@@ -2,7 +2,7 @@ from flask import Flask,jsonify,request
 import mysql.connector
 
 app = Flask(__name__)
-db = mysql.connector.connect(host='localhost', user='root', password='root', database='ecommerce_system')
+db = mysql.connector.connect(host='localhost', user='root', password='', database='ecommerce_system')
 
 @app.get('/api/inventory/check/<int:product_id>')
 def check_inventory(product_id):

@@ -5,7 +5,7 @@ import requests
 from decimal import Decimal
 
 app = Flask(__name__)
-db = mysql.connector.connect(host='localhost', user='root', password='root', database='ecommerce_system')
+db = mysql.connector.connect(host='localhost', user='root', password='', database='ecommerce_system')
 
 @app.route('/orders', methods=['GET'])
 def get_orders():
