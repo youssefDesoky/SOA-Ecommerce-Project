@@ -26,7 +26,7 @@
                 </a>
 
                 <a href="<%= request.getContextPath() %>/customers" class="user-profile-btn" id="user-profile-btn" title="My Profile">
-                    <span id="user-initials">GU</span>
+                    <span id="user-initials">P</span>
                 </a>
             </nav>
         </div>

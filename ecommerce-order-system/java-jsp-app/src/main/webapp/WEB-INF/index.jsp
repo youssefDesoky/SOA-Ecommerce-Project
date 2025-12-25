@@ -33,7 +33,7 @@
                     </button>
 
                     <a href="${pageContext.request.contextPath}/customers" class="user-profile-btn" id="user-profile-btn" title="My Profile">
-                        <span id="user-initials">GU</span>
+                        <span id="user-initials">P</span>
                     </a>
                 </div>
             </nav>
