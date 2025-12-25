@@ -212,6 +212,76 @@ def get_order(order_id):
         cur.close()
         db.close()
 
+
+
+@app.route('/api/orders/preview', methods=['POST'])
+def preview_order():
+    data = request.get_json(silent=True) or {}
+
+    products = data.get('products', [])
+    shipping_address = data.get('shipping_address', '')
+
+    if not products:
+        return jsonify({'error': 'No products'}), 400
+
+    enriched_products = []
+
+    for p in products:
+        product_id = p.get('product_id')
+        quantity = p.get('quantity')
+
+        if not isinstance(product_id, int) or not isinstance(quantity, int):
+            return jsonify({'error': 'Invalid product data'}), 400
+
+        inv_res = requests.get(
+            f'http://localhost:5002/api/inventory/check/{product_id}'
+        )
+
+        if inv_res.status_code != 200:
+            return jsonify({'error': f'Product {product_id} not found'}), 404
+
+        inv = inv_res.json()
+
+        if 'unit_price' not in inv or inv['unit_price'] is None:
+            return jsonify({'error': f'Price missing for product {product_id}'}), 500
+
+        enriched_products.append({
+            "product_id": product_id,
+            "quantity": quantity,
+            "unit_price": float(inv['unit_price'])
+        })
+
+    pricing_res = requests.post(
+        "http://localhost:5003/api/pricing/calculate",
+        json={
+            "products": enriched_products,
+            "region": shipping_address.split(',')[-1].strip()
+        }
+    )
+
+    if pricing_res.status_code != 200:
+        return jsonify({'error': 'Pricing failed'}), 500
+
+    pricing = pricing_res.json()
+
+    total_discount = sum(
+        Decimal(item['total_before_discount']) - Decimal(item['discounted_total'])
+        for item in pricing['items']
+    )
+
+    return jsonify({
+        "items": pricing["items"],
+        "subtotal": pricing["subtotal"],
+        "discount": total_discount,
+        "tax": pricing["tax"],
+        "total_amount": pricing["total"]
+    }), 200
+
+
+
+
+
+
 if __name__ == '__main__':
     print("=" * 50)
     print("Order Service running on port 5001")
