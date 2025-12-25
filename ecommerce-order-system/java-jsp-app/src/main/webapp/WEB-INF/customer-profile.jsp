@@ -618,6 +618,7 @@
                                 <th>Date</th>
                                 <th>Total</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="ordersBody">
@@ -638,6 +639,8 @@
     <script>
         // Customer Service API URL
         var CUSTOMER_SERVICE_URL = 'http://localhost:5004/api/customers';
+        const BASE = "${pageContext.request.contextPath}"; // JSP inject
+
         
         // Current customer data
         var currentCustomer = null;
@@ -749,6 +752,11 @@
                     '<td><span class="order-status ' + statusClass + '">' + 
                         (order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1) + 
                     '</span></td>' +
+                    '<td>' +
+                        '<a href="' + BASE + '/orders/view/' + order.order_id + '" class="btn btn-secondary" title="View Order">' +
+                        '<i class="fas fa-eye"></i>' +
+                        '</a>'+
+                    '</td>' +
                 '</tr>';
             }).join('');
         }

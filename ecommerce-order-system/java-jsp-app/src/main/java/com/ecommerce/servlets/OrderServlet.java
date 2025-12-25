@@ -20,6 +20,57 @@ public class OrderServlet extends HttpServlet {
     private static final String CUSTOMER_SERVICE_URL = "http://127.0.0.1:5004/api/customers";
 
     // =======================
+    // GET HANDLER
+    // =======================
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String pathInfo = request.getPathInfo(); // /view/123
+
+        if (pathInfo != null && pathInfo.startsWith("/view/")) {
+            viewOrder(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+
+    private void viewOrder(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String pathInfo = request.getPathInfo(); // /view/123
+        String orderId = pathInfo.replace("/view/", "");
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest orderRequest = HttpRequest.newBuilder()
+                .uri(URI.create(ORDER_SERVICE_URL + "/" + orderId))
+                .GET()
+                .build();
+
+        try {
+            HttpResponse<String> orderResponse = client.send(orderRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (orderResponse.statusCode() != 200) {
+                response.sendError(404, "Order not found");
+                return;
+            }
+
+            // Pass raw JSON to JSP (or parse if you prefer)
+            request.setAttribute("orderJson", orderResponse.body());
+
+            request.getRequestDispatcher("/WEB-INF/order-details.jsp")
+                    .forward(request, response);
+
+        } catch (IOException e) {
+            response.sendError(500, "Failed to fetch order: " + e.getMessage());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            response.sendError(500, "Failed to fetch order");
+        }
+    }
+
+    // =======================
     // POST HANDLER
     // =======================
     @Override
@@ -30,14 +81,11 @@ public class OrderServlet extends HttpServlet {
 
         if ("/create".equals(pathInfo)) {
             previewOrder(request, response);
-        }
-        else if ("/submit".equals(pathInfo)) {
+        } else if ("/submit".equals(pathInfo)) {
             submitOrder(request, response);
-        }
-        else if ("/cancel".equals(pathInfo)) {
+        } else if ("/cancel".equals(pathInfo)) {
             cancelOrder(request, response);
-        }
-        else {
+        } else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
@@ -59,8 +107,8 @@ public class OrderServlet extends HttpServlet {
         session.setAttribute("phone", request.getParameter("phone"));
         session.setAttribute("shippingAddress",
                 request.getParameter("address") + ", " +
-                request.getParameter("city") + ", " +
-                request.getParameter("government"));
+                        request.getParameter("city") + ", " +
+                        request.getParameter("government"));
 
         // Pass data to confirmation page
         request.setAttribute("customerName",
@@ -107,8 +155,7 @@ public class OrderServlet extends HttpServlet {
                     .POST(HttpRequest.BodyPublishers.ofString(customerPayload))
                     .build();
 
-            HttpResponse<String> customerRes =
-                    client.send(customerReq, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> customerRes = client.send(customerReq, HttpResponse.BodyHandlers.ofString());
 
             if (customerRes.statusCode() != 200 && customerRes.statusCode() != 201) {
                 throw new RuntimeException("Customer creation failed");
@@ -127,8 +174,7 @@ public class OrderServlet extends HttpServlet {
                     .POST(HttpRequest.BodyPublishers.ofString(orderPayload))
                     .build();
 
-            HttpResponse<String> orderRes =
-                    client.send(orderReq, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> orderRes = client.send(orderReq, HttpResponse.BodyHandlers.ofString());
 
             if (orderRes.statusCode() != 200 && orderRes.statusCode() != 201) {
                 throw new RuntimeException("Order creation failed");
@@ -167,7 +213,8 @@ public class OrderServlet extends HttpServlet {
     // JSON ESCAPE
     // =======================
     private String escapeJson(String input) {
-        if (input == null) return "";
+        if (input == null)
+            return "";
         return input.replace("\\", "\\\\")
                 .replace("\"", "\\\"")
                 .replace("\n", "\\n")
