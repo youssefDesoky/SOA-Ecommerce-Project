@@ -475,7 +475,7 @@ body {
       
       <div class="page-header">
           <div class="breadcrumb">
-              <a href="#"><i class="fas fa-arrow-left"></i> Back to Orders</a>
+              <a href="${pageContext.request.contextPath}/customers"><i class="fas fa-arrow-left"></i> Back to previous</a>
               <span>/</span>
               <span>Order Details</span>
           </div>
@@ -565,22 +565,24 @@ body {
   </footer>
 
 <script>
-const orderId = window.location.pathname.split('/').pop();
-const ORDER_API = "http://localhost:5001/api/orders/" + orderId;
-const INVENTORY_API = "http://localhost:5002/api/inventory";
+var orderId = window.location.pathname.split('/').pop();
+var ORDER_API = "http://localhost:5001/api/orders/" + orderId;
+var INVENTORY_API = "http://localhost:5002/api/inventory";
 
 async function fetchOrderAndInventory() {
     try {
-        const [orderRes, inventoryRes] = await Promise.all([
+        var responses = await Promise.all([
             fetch(ORDER_API),
             fetch(INVENTORY_API)
         ]);
+        var orderRes = responses[0];
+        var inventoryRes = responses[1];
 
         if (!orderRes.ok) throw new Error("Order not found");
         if (!inventoryRes.ok) throw new Error("Inventory service error");
 
-        const order = await orderRes.json();
-        const inventory = await inventoryRes.json();
+        var order = await orderRes.json();
+        var inventory = await inventoryRes.json();
 
         renderOrder(order, inventory);
     } catch (err) {
@@ -601,56 +603,56 @@ function renderOrder(order, inventory) {
     document.getElementById("paymentMethod").innerText = order.payment_method;
 
     // Status badge
-    const badge = document.getElementById("orderStatusBadge");
+    var badge = document.getElementById("orderStatusBadge");
     badge.innerText = order.status;
     badge.className = "status-badge " +
         (order.status === "completed" ? "status-shipped" :
          order.status === "cancelled" ? "status-cancelled" : "status-pending");
 
     // Date
-    const date = new Date(order.order_date);
+    var date = new Date(order.order_date);
     document.getElementById("orderDateDisplay").innerText =
         "Placed on " + date.toLocaleString();
 
     // Inventory lookup map
-    const inventoryMap = {};
-    inventory.forEach(p => inventoryMap[p.product_id] = p.product_name);
+    var inventoryMap = {};
+    inventory.forEach(function(p) { inventoryMap[p.product_id] = p.product_name; });
 
     // Items
-    const itemsDiv = document.getElementById("items");
+    var itemsDiv = document.getElementById("items");
     document.getElementById("itemCount").innerText =
         order.items.length + (order.items.length === 1 ? " item" : " items");
 
     itemsDiv.innerHTML = "";
 
-    order.items.forEach(item => {
-        const name = inventoryMap[item.product_id] || ("Product #" + item.product_id);
+    order.items.forEach(function(item) {
+        var name = inventoryMap[item.product_id] || ("Product #" + item.product_id);
 
-        itemsDiv.innerHTML += `
-          <div class="order-item">
-            <div class="item-info">
-              <div class="item-icon-placeholder">
-                <i class="fas fa-box"></i>
-              </div>
-              <div class="item-details">
-                <h4>${name}</h4>
-                <div class="item-meta">Qty: ${item.quantity}</div>
-              </div>
-            </div>
-            <div class="item-price">$${Number(item.total_price).toFixed(2)}</div>
-          </div>
-        `;
+        itemsDiv.innerHTML += '<div class="order-item">' +
+            '<div class="item-info">' +
+              '<div class="item-icon-placeholder">' +
+                '<i class="fas fa-box"></i>' +
+              '</div>' +
+              '<div class="item-details">' +
+                '<h4>' + name + '</h4>' +
+                '<div class="item-meta">Qty: ' + item.quantity + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="item-price">$' + Number(item.total_price).toFixed(2) + '</div>' +
+          '</div>';
     });
 
-    // Summary
+    var totalAmount = parseFloat(order.total_amount) || 0;
+    var totalDiscount = parseFloat(order.total_discount) || 0;
+
     document.getElementById("subtotal").innerText =
-        "$" + (order.total_amount + order.total_discount).toFixed(2);
+        "$" + (totalAmount + totalDiscount).toFixed(2);
 
     document.getElementById("discount").innerText =
-        "-$" + order.total_discount.toFixed(2);
+        "-$" + totalDiscount.toFixed(2);
 
     document.getElementById("total").innerText =
-        "$" + order.total_amount.toFixed(2);
+        "$" + totalAmount.toFixed(2);
 }
 
 fetchOrderAndInventory();
