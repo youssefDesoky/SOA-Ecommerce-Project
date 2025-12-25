@@ -451,26 +451,11 @@ body {
     color: var(--error);
     padding: 15px 20px;
     border-radius: var(--radius);
-    margin-bottom: 20px;
+    margin-top: 20px;
     display: none;
 }
 
 .error-message.active {
-    display: block;
-}
-
-/* Success Message */
-.success-message {
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid var(--success);
-    color: var(--success);
-    padding: 15px 20px;
-    border-radius: var(--radius);
-    margin-bottom: 20px;
-    display: none;
-}
-
-.success-message.active {
     display: block;
 }
 

@@ -1,5 +1,13 @@
 package com.ecommerce.servlets;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -9,14 +17,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.List;
-import java.util.Map;
 
 @WebServlet("/orders/*")
 public class OrderServlet extends HttpServlet {
@@ -34,7 +34,44 @@ public class OrderServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        String path = request.getPathInfo();
+
+        if (path != null && path.startsWith("/view/")) {
+            viewOrder(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+
+    // ======================================================
+    // VIEW ORDER DETAILS
+    // ======================================================
+    private void viewOrder(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String pathInfo = request.getPathInfo();
+        String orderId = pathInfo.replace("/view/", "");
+
+        HttpRequest orderRequest = HttpRequest.newBuilder()
+                .uri(URI.create(ORDER_SERVICE_URL + "/" + orderId))
+                .GET()
+                .build();
+
+        try {
+            HttpResponse<String> orderResponse = client.send(orderRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (orderResponse.statusCode() != 200) {
+                response.sendError(404, "Order not found");
+                return;
+            }
+
+            request.setAttribute("orderJson", orderResponse.body());
+            request.getRequestDispatcher("/WEB-INF/order-details.jsp").forward(request, response);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            response.sendError(500, "Failed to fetch order");
+        }
     }
 
     // ======================================================
@@ -134,10 +171,10 @@ public class OrderServlet extends HttpServlet {
             request.setAttribute("paymentMethod", paymentMethod);
 
             request.setAttribute("items", items);
-            request.setAttribute("subtotal", order.get("subtotal").asDouble());
-            request.setAttribute("discount", order.get("discount").asDouble());
-            request.setAttribute("tax", order.get("tax").asDouble());
-            request.setAttribute("total", order.get("total_amount").asDouble());
+            request.setAttribute("subtotal", String.format("%.2f", order.get("subtotal").asDouble()));
+            request.setAttribute("discount", String.format("%.2f", order.get("discount").asDouble()));
+            request.setAttribute("tax", String.format("%.2f", order.get("tax").asDouble()));
+            request.setAttribute("total", String.format("%.2f", order.get("total_amount").asDouble()));
 
             request.getRequestDispatcher("/WEB-INF/confirmation.jsp")
                     .forward(request, response);

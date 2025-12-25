@@ -106,7 +106,7 @@
                 <div class="product-item">
                     <div class="product-info">
                         <div class="product-name">
-                            ${item.product_name}
+                            Name: ${item.product_name}
                         </div>
                         <div class="product-meta">
                             Quantity: ${item.quantity}

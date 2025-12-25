@@ -225,6 +225,7 @@ def preview_order():
         return jsonify({'error': 'No products'}), 400
 
     enriched_products = []
+    product_names = {}  # Store product names for later
 
     for p in products:
         product_id = p.get('product_id')
@@ -244,6 +245,9 @@ def preview_order():
 
         if 'unit_price' not in inv or inv['unit_price'] is None:
             return jsonify({'error': f'Price missing for product {product_id}'}), 500
+
+        # Store product name
+        product_names[product_id] = inv.get('product_name', f'Product #{product_id}')
 
         enriched_products.append({
             "product_id": product_id,
@@ -269,10 +273,23 @@ def preview_order():
         for item in pricing['items']
     )
 
+    # Add product names and format for JSP
+    items_with_names = []
+    for item in pricing['items']:
+        # Use Decimal for proper rounding
+        total_price = Decimal(str(item['discounted_total'])).quantize(Decimal('0.01'))
+        items_with_names.append({
+            'product_id': item['product_id'],
+            'product_name': product_names.get(item['product_id'], f"Product #{item['product_id']}"),
+            'quantity': item['quantity'],
+            'unit_price': float(Decimal(str(item['unit_price'])).quantize(Decimal('0.01'))),
+            'total_price': float(total_price)
+        })
+
     return jsonify({
-        "items": pricing["items"],
+        "items": items_with_names,
         "subtotal": pricing["subtotal"],
-        "discount": total_discount,
+        "discount": float(total_discount),
         "tax": pricing["tax"],
         "total_amount": pricing["total"]
     }), 200

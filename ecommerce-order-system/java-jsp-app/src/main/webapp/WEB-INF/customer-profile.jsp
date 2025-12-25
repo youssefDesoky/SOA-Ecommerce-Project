@@ -50,13 +50,6 @@
                 <span><c:out value="${errorMessage}"/></span>
             </div>
         </c:if>
-
-        <c:if test="${not empty successMessage}">
-            <div class="success-message active">
-                <i class="fas fa-check-circle"></i>
-                <span><c:out value="${successMessage}"/></span>
-            </div>
-        </c:if>
     </section>
 
     <!-- Results Section (show only when customer exists) -->
