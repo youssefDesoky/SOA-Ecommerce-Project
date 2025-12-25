@@ -38,20 +38,16 @@
         <div class="confirmation-card">
             <!-- Success Icon -->
             <div class="success-icon">
-                <i class="fas fa-check"></i>
+                <i class="fas fa-bag-shopping"></i>
+                <i class="fas fa-check icon-overlay"></i>
             </div>
+
             
             <!-- Confirmation Title -->
-            <h1 class="confirmation-title">Order Confirmed!</h1>
+            <h1 class="confirmation-title">Confirm Order</h1>
             <p class="confirmation-subtitle">
-                Thank you for your purchase! Your order has been successfully placed and is being processed.
-                We've sent a confirmation email with all the details.
+                Please review your order details below before finalizing your purchase.
             </p>
-            
-            <!-- Order Number -->
-            <div class="order-number" id="orderNumber">
-                Order #<span id="orderId"><%= request.getAttribute("orderId") != null ? request.getAttribute("orderId") : "N/A" %></span>
-            </div>
             
             <!-- Order Details -->
             <div class="order-details">
@@ -128,16 +124,22 @@
                 </div>
             </div>
             
-            <!-- Action Buttons -->
             <div class="action-buttons">
-                <a href="${pageContext.request.contextPath}/inventory" class="btn btn-primary">
-                    <i class="fas fa-shopping-bag"></i>
-                    Continue Shopping
-                </a>
-                <button class="btn btn-secondary" onclick="printConfirmation()">
-                    <i class="fas fa-print"></i>
-                    Print Receipt
-                </button>
+
+                <form action="<%= request.getContextPath() %>/orders/submit" method="post">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-check"></i>
+                        Submit Order
+                    </button>
+                </form>
+
+                <form action="<%= request.getContextPath() %>/orders/cancel" method="post">
+                    <button class="btn btn-danger">
+                        <i class="fas fa-times"></i>
+                        Cancel Order
+                    </button>
+                </form>
+
             </div>
         </div>
     </div>
