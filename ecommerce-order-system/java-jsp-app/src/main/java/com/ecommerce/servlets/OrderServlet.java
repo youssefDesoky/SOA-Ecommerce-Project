@@ -21,8 +21,8 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet("/orders/*")
 public class OrderServlet extends HttpServlet {
 
-    private static final String ORDER_SERVICE_URL = "http://localhost:5001/api/orders";
-    private static final String CUSTOMER_SERVICE_URL = "http://localhost:5004/api/customers";
+    private static final String ORDER_SERVICE_URL = "http://127.0.0.1:5001/api/orders";
+    private static final String CUSTOMER_SERVICE_URL = "http://127.0.0.1:5004/api/customers";
 
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
