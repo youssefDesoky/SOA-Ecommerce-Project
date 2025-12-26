@@ -21,7 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @WebServlet(urlPatterns = {"/inventory", "/inventory/*", "/index"})
 public class InventoryServlet extends HttpServlet {
-    private static final String INVENTORY_SERVICE_URL = "http://127.0.0.1:5002/api/inventory";
+    private static final String INVENTORY_SERVICE_URL = "http://172.17.0.1:5002/api/inventory";
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper();
 

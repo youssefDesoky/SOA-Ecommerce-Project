@@ -23,7 +23,7 @@ import java.util.Map;
 @WebServlet("/customers/*")
 public class CustomerServlet extends HttpServlet {
 
-    private static final String CUSTOMER_SERVICE_URL = "http://127.0.0.1:5004/api/customers";
+    private static final String CUSTOMER_SERVICE_URL = "http://172.17.0.1:5004/api/customers";
 
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();

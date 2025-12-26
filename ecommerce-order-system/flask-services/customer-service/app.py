@@ -13,7 +13,7 @@ def get_db_connection():
     return mysql.connector.connect(
         host='localhost', 
         user='root', 
-        password='', 
+        password='root', 
         database='ecommerce_system'
     )
 

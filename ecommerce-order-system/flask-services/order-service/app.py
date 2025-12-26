@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 def get_db_connection():
-    return mysql.connector.connect(host='localhost', user='root', password='', database='ecommerce_system')
+    return mysql.connector.connect(host='localhost', user='root', password='root', database='ecommerce_system')
 
 @app.route('/orders', methods=['GET'])
 def get_orders():
