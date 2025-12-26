@@ -73,11 +73,6 @@
                     <i class="fas fa-shopping-bag"></i>
                     Continue Shopping
                 </a>
-
-                <button class="btn btn-secondary" onclick="window.print()">
-                    <i class="fas fa-print"></i>
-                    Print Receipt
-                </button>
             </div>
 
         </div>

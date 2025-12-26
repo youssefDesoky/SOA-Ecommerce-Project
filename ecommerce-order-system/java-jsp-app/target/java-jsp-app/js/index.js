@@ -131,7 +131,6 @@ const wireCartItemActions = () => {
 
 const checkout = () => {
   if (cart.length === 0) {
-    // notification removed -> just silently stop
     return;
   }
 
