@@ -8,6 +8,7 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 
+import com.ecommerce.config.AppConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -21,9 +22,9 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet("/orders/*")
 public class OrderServlet extends HttpServlet {
 
-    private static final String ORDER_SERVICE_URL = "http://127.0.0.1:5001/api/orders";
-    private static final String CUSTOMER_SERVICE_URL = "http://127.0.0.1:5004/api/customers";
-    private static final String NOTIFICATION_SERVICE_URL = "http://127.0.0.1:5005/api/notifications";
+    private static final String ORDER_SERVICE_URL = AppConfig.getOrderServiceUrl();
+    private static final String CUSTOMER_SERVICE_URL = AppConfig.getCustomerServiceUrl();
+    private static final String NOTIFICATION_SERVICE_URL = AppConfig.getNotificationServiceUrl();
 
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();

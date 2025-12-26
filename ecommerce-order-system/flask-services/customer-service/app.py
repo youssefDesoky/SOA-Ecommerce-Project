@@ -2,20 +2,21 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import mysql.connector
 import requests
+import sys
+import os
+
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import Config
 
 app = Flask(__name__)
 CORS(app)
 
-# Order Service URL for service composition
-ORDER_SERVICE_URL = "http://localhost:5001/api/orders"
+# Order Service URL from config
+ORDER_SERVICE_URL = Config.ORDER_SERVICE_URL
 
 def get_db_connection():
-    return mysql.connector.connect(
-        host='localhost', 
-        user='root', 
-        password='', 
-        database='ecommerce_system'
-    )
+    return mysql.connector.connect(**Config.get_db_config())
 
 def serialize_customer(customer):
     """Convert customer data to JSON-serializable format"""
@@ -262,5 +263,5 @@ if __name__ == '__main__':
     print("  POST /api/customers              - Create new customer")
     print("  GET  /api/customers              - Get all customers")
     print("=" * 50)
-    app.run(debug=True, port=5004, host='0.0.0.0')
+    app.run(debug=Config.DEBUG, port=Config.CUSTOMER_SERVICE_PORT, host=Config.HOST)
     

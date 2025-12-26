@@ -4,12 +4,18 @@ from flask_cors import CORS
 import mysql.connector
 import requests
 from decimal import Decimal
+import sys
+import os
+
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import Config
 
 app = Flask(__name__)
 CORS(app)
 
 def get_db_connection():
-    return mysql.connector.connect(host='localhost', user='root', password='', database='ecommerce_system')
+    return mysql.connector.connect(**Config.get_db_config())
 
 @app.route('/orders', methods=['GET'])
 def get_orders():
@@ -301,11 +307,11 @@ def preview_order():
 
 if __name__ == '__main__':
     print("=" * 50)
-    print("Order Service running on port 5001")
+    print(f"Order Service running on port {Config.ORDER_SERVICE_PORT}")
     print("=" * 50)
     print("Endpoints:")
     print("  GET  /api/orders              - Get all orders (optional ?customer_id=X)")
     print("  GET  /api/orders/{order_id}   - Get specific order")
     print("  POST /api/orders/create       - Create new order")
     print("=" * 50)
-    app.run(debug=True, port=5001, host='0.0.0.0')
+    app.run(debug=Config.DEBUG, port=Config.ORDER_SERVICE_PORT, host=Config.HOST)

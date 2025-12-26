@@ -7,6 +7,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import com.ecommerce.config.AppConfig;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,7 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet("/pricing/*")
 public class PricingServlet extends HttpServlet {
 
-    private static final String PRICING_SERVICE_URL = "http://127.0.0.1:5003/api/pricing";
+    private static final String PRICING_SERVICE_URL = AppConfig.getPricingServiceUrl();
 
     // POST /pricing/calculate
     @Override

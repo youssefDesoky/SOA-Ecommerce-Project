@@ -1,5 +1,6 @@
 package com.ecommerce.servlets;
 
+import com.ecommerce.config.AppConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -23,11 +24,8 @@ import java.util.Map;
 @WebServlet("/customers/*")
 public class CustomerServlet extends HttpServlet {
 
-    private static final String CUSTOMER_SERVICE_URL =
-            "http://127.0.0.1:5004/api/customers";
-
-    private static final String NOTIFICATION_SERVICE_URL =
-            "http://127.0.0.1:5005/api/notifications";
+    private static final String CUSTOMER_SERVICE_URL = AppConfig.getCustomerServiceUrl();
+    private static final String NOTIFICATION_SERVICE_URL = AppConfig.getNotificationServiceUrl();
 
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();

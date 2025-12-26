@@ -6,6 +6,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import com.ecommerce.config.AppConfig;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,7 +17,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet("/notification/*")
 public class NotificationServlet extends HttpServlet {
 
-    private static final String NOTIFICATION_SERVICE_URL = "http://localhost:5005/api/notifications";
+    private static final String NOTIFICATION_SERVICE_URL = AppConfig.getNotificationServiceUrl();
 
     // ======================================================
     // POST /notification/send

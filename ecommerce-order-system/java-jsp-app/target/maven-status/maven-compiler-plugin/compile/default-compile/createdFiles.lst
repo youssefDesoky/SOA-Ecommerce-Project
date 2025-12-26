@@ -1,6 +1,7 @@
 com\ecommerce\model\Product.class
 com\ecommerce\servlets\CustomerServlet.class
 com\ecommerce\servlets\CustomerServlet$3.class
+com\ecommerce\config\AppConfig.class
 com\ecommerce\servlets\CustomerServlet$1.class
 com\ecommerce\servlets\NotificationServlet.class
 com\ecommerce\servlets\OrderServlet.class

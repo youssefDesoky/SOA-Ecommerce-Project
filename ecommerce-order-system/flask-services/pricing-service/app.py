@@ -2,15 +2,26 @@ from flask import Flask, jsonify, request
 import mysql.connector
 import requests
 from decimal import Decimal
+import sys
+import os
+
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import Config
 
 app = Flask(__name__)
-db = mysql.connector.connect(host='localhost', user='root', password='', database='ecommerce_system')
+
+def get_db_connection():
+    return mysql.connector.connect(**Config.get_db_config())
 
 @app.route('/pricing', methods=['GET'])
 def get_pricing():
+    db = get_db_connection()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM pricing_rules")
     result = cursor.fetchall()
+    cursor.close()
+    db.close()
     return {'pricing': result}
 
 #POST /api/pricing/calculate - Calculate order total
@@ -23,6 +34,7 @@ def calculate_pricing():
     if not products:
         return jsonify({'error': 'no products provided'}), 400
 
+    db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     items = []
     subtotal = Decimal(0)
@@ -72,4 +84,4 @@ def calculate_pricing():
     }), 200
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5003, host='0.0.0.0')
+    app.run(debug=Config.DEBUG, port=Config.PRICING_SERVICE_PORT, host=Config.HOST)

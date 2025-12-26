@@ -7,6 +7,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import sys
 import os
+from datetime import datetime, timedelta
 
 # Add parent directory to path to import config
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -105,6 +106,18 @@ def send_notification():
             total_amount = order_data.get('total_amount', 0)
             order_status = order_data.get('status', 'pending')
             order_items = order_data.get('items', [])
+            order_date_str = order_data.get('order_date', '')
+            
+            # Calculate estimated delivery date (order_date + 4 days)
+            try:
+                if order_date_str:
+                    order_date = datetime.strptime(order_date_str.split(' ')[0], '%Y-%m-%d')
+                else:
+                    order_date = datetime.now()
+                estimated_delivery = order_date + timedelta(days=4)
+                estimated_delivery_str = estimated_delivery.strftime('%B %d, %Y')
+            except:
+                estimated_delivery_str = (datetime.now() + timedelta(days=4)).strftime('%B %d, %Y')
         except requests.exceptions.RequestException as e:
             return jsonify({'error': f'Order Service unavailable: {str(e)}'}), 503
         
@@ -156,6 +169,7 @@ Order Details:
 {items_text}
 
 Total Amount: ${total_amount}
+Estimated Delivery: {estimated_delivery_str}
 
 Thank you for shopping with us!"""
         
@@ -228,4 +242,4 @@ def get_customer_notifications(customer_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5005, host='0.0.0.0')
+    app.run(debug=Config.DEBUG, port=Config.NOTIFICATION_SERVICE_PORT, host=Config.HOST)
