@@ -129,6 +129,68 @@
                 </div>
             </div>
 
+            <!-- Notifications Card -->
+            <div class="orders-card">
+                <div class="orders-header">
+                    <h3 class="orders-title">
+                        <i class="fas fa-bell"></i> My Notifications
+                    </h3>
+
+                    <span class="badge badge-primary">
+                        <c:choose>
+                            <c:when test="${not empty notifications}">
+                                <c:out value="${fn:length(notifications)}"/> notifications
+                            </c:when>
+                            <c:otherwise>0 notifications</c:otherwise>
+                        </c:choose>
+                    </span>
+                </div>
+
+                <c:choose>
+                    <c:when test="${empty notifications}">
+                        <div class="empty-state">
+                            <i class="fas fa-bell-slash"></i>
+                            <h3>No Notifications</h3>
+                            <p>This customer has no notifications yet.</p>
+                        </div>
+                    </c:when>
+
+                    <c:otherwise>
+                        <table class="orders-table">
+                            <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Message</th>
+                                <th>Order</th>
+                                <th>Date</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <c:forEach var="n" items="${notifications}">
+                                <tr>
+                                    <td>
+                                        <span class="order-status status-completed">
+                                            <c:out value="${n.notification_type}"/>
+                                        </span>
+                                    </td>
+                                    <td><c:out value="${n.message}"/></td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not empty n.order_id}">
+                                                #<c:out value="${n.order_id}"/>
+                                            </c:when>
+                                            <c:otherwise>—</c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td><c:out value="${n.sent_at}"/></td>
+                                </tr>
+                            </c:forEach>
+                            </tbody>
+                        </table>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+
             <!-- Orders Card -->
             <div class="orders-card">
                 <div class="orders-header">

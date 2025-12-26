@@ -327,6 +327,7 @@ body {
     border-radius: var(--radius);
     padding: 40px;
     box-shadow: var(--shadow);
+    margin-bottom: 20px;
 }
 
 .orders-header {
