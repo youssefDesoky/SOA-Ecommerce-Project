@@ -147,12 +147,32 @@
 
         </div>
 
+        <!-- ================= NOTIFICATION TYPE ================= -->
+        <div class="order-details" style="margin-bottom: 20px;">
+            <h3><i class="fas fa-bell"></i> Notification Preference</h3>
+            <div class="notification-options" style="display: flex; gap: 20px; margin-top: 15px;">
+                <label style="display: flex; align-items: center; cursor: pointer; padding: 15px 25px; border: 2px solid #e5e7eb; border-radius: 12px; transition: all 0.3s;">
+                    <input type="radio" name="notification_type" value="email" checked 
+                           style="width: 18px; height: 18px; margin-right: 10px;">
+                    <i class="fas fa-envelope" style="margin-right: 8px; color: #6366f1;"></i>
+                    <span>Email Notification</span>
+                </label>
+                <label style="display: flex; align-items: center; cursor: pointer; padding: 15px 25px; border: 2px solid #e5e7eb; border-radius: 12px; transition: all 0.3s;">
+                    <input type="radio" name="notification_type" value="sms"
+                           style="width: 18px; height: 18px; margin-right: 10px;">
+                    <i class="fas fa-mobile-alt" style="margin-right: 8px; color: #10b981;"></i>
+                    <span>SMS Notification</span>
+                </label>
+            </div>
+        </div>
+
         <!-- ================= ACTIONS ================= -->
         <div class="action-buttons">
 
-            <form action="${pageContext.request.contextPath}/orders/submit"
+            <form id="submitOrderForm" action="${pageContext.request.contextPath}/orders/submit"
                   method="post">
-                <button class="btn btn-primary">
+                <input type="hidden" name="notification_type" id="notificationTypeInput" value="email">
+                <button type="submit" class="btn btn-primary">
                     <i class="fas fa-check"></i>
                     Submit Order
                 </button>
@@ -167,6 +187,15 @@
             </form>
 
         </div>
+
+        <script>
+            // Update hidden input when notification type changes
+            document.querySelectorAll('input[name="notification_type"]').forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    document.getElementById('notificationTypeInput').value = this.value;
+                });
+            });
+        </script>
 
     </div>
 </div>

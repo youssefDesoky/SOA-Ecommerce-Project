@@ -1,1 +1,23 @@
 ecommerce-order-system/java-jsp-app/target/java-jsp-app.war
+# Environment files (contain secrets)
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+service1_env/
+service1_env_windows/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

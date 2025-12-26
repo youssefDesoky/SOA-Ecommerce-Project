@@ -23,6 +23,7 @@ public class OrderServlet extends HttpServlet {
 
     private static final String ORDER_SERVICE_URL = "http://127.0.0.1:5001/api/orders";
     private static final String CUSTOMER_SERVICE_URL = "http://127.0.0.1:5004/api/customers";
+    private static final String NOTIFICATION_SERVICE_URL = "http://127.0.0.1:5005/api/notifications";
 
     private final HttpClient client = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -203,6 +204,12 @@ public class OrderServlet extends HttpServlet {
         String email = (String) session.getAttribute("email");
         String phone = (String) session.getAttribute("phone");
         String shippingAddress = (String) session.getAttribute("shippingAddress");
+        
+        // Get notification type from form
+        String notificationType = request.getParameter("notification_type");
+        if (notificationType == null || notificationType.isEmpty()) {
+            notificationType = "email";
+        }
 
         try {
             // -----------------------
@@ -262,11 +269,18 @@ public class OrderServlet extends HttpServlet {
             String orderId = order.get("order_id").asText();
 
             // -----------------------
+            // Send notification (logs to DB)
+            // -----------------------
+            String notificationResult = sendOrderNotification(orderId, notificationType);
+
+            // -----------------------
             // Cleanup
             // -----------------------
             session.invalidate();
 
             request.setAttribute("orderId", orderId);
+            request.setAttribute("notificationType", notificationType);
+            request.setAttribute("notificationMessage", notificationResult);
             request.getRequestDispatcher("/WEB-INF/confirmation-success.jsp")
                     .forward(request, response);
 
@@ -299,5 +313,44 @@ public class OrderServlet extends HttpServlet {
                 .replace("\"", "\\\"")
                 .replace("\n", "\\n")
                 .replace("\r", "\\r");
+    }
+
+    // ======================================================
+    // SEND ORDER NOTIFICATION
+    // ======================================================
+    private String sendOrderNotification(String orderId, String notificationType) {
+        try {
+            String notificationPayload = String.format(
+                    "{ \"order_id\": %s, \"notification_type\": \"%s\" }",
+                    orderId,
+                    notificationType
+            );
+
+            HttpRequest notificationReq = HttpRequest.newBuilder()
+                    .uri(URI.create(NOTIFICATION_SERVICE_URL + "/send"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(notificationPayload))
+                    .build();
+
+            HttpResponse<String> notificationRes =
+                    client.send(notificationReq, HttpResponse.BodyHandlers.ofString());
+
+            if (notificationRes.statusCode() == 201 || notificationRes.statusCode() == 200) {
+                System.out.println("Notification sent successfully for order: " + orderId);
+                // Parse response to get notification message for SMS display
+                JsonNode notificationResponse = mapper.readTree(notificationRes.body());
+                if (notificationResponse.has("notification_message")) {
+                    return notificationResponse.get("notification_message").asText();
+                }
+            } else {
+                System.err.println("Failed to send notification for order: " + orderId + 
+                        " - Status: " + notificationRes.statusCode());
+            }
+
+        } catch (Exception e) {
+            // Log error but don't fail the order
+            System.err.println("Notification service error for order " + orderId + ": " + e.getMessage());
+        }
+        return "";
     }
 }

@@ -15,7 +15,7 @@
 <div class="container">
     <!-- Header -->
     <header class="header">
-        <a href="inventory" class="logo">
+        <a href="${pageContext.request.contextPath}/inventory" class="logo">
             <div class="logo-icon">N</div>
             <span class="logo-text">Nexus</span>
         </a>

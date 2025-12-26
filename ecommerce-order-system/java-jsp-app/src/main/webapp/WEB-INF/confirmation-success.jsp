@@ -57,10 +57,18 @@
 
             <!-- Info -->
             <div class="order-info">
+                <% String notificationType = (String) request.getAttribute("notificationType"); %>
+                <% if ("sms".equals(notificationType)) { %>
+                <p>
+                    <i class="fas fa-mobile-alt"></i>
+                    An SMS notification has been sent. Check your browser console for the message.
+                </p>
+                <% } else { %>
                 <p>
                     <i class="fas fa-envelope"></i>
                     A confirmation email has been sent to you.
                 </p>
+                <% } %>
                 <p>
                     <i class="fas fa-truck"></i>
                     Your order will be shipped shortly.
@@ -76,6 +84,20 @@
             </div>
         </div>
     </div>
+
+    <!-- SMS Notification in Browser Console -->
+    <% if ("sms".equals(notificationType)) { 
+        String msg = (String) request.getAttribute("notificationMessage");
+        if (msg != null) {
+            // Escape for JavaScript
+            msg = msg.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r");
+    %>
+    <script>
+        console.log("========== SMS NOTIFICATION ==========");
+        console.log("<%= msg %>");
+        console.log("=======================================");
+    </script>
+    <% } } %>
 
     <!-- Footer -->
     <footer class="footer">
