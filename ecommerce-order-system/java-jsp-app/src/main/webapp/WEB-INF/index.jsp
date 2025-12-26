@@ -12,12 +12,10 @@
 
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/index.css">
 
-    <script>
-        window.APP_CONTEXT = '${pageContext.request.contextPath}';
-    </script>
     <script src="${pageContext.request.contextPath}/js/index.js" defer></script>
 </head>
-<body>
+
+<body data-context-path="${pageContext.request.contextPath}">
 
 <header class="header">
     <div class="container">
@@ -129,7 +127,7 @@
 <form id="checkout-post-form"
       action="${pageContext.request.contextPath}/checkout"
       method="post"
-      style="display:none;">
+      class="hidden-form">
     <input type="hidden" name="cart_data" id="checkout-cart-data" value="">
 </form>
 
